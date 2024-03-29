@@ -1,0 +1,53 @@
+---
+compiled_package_info:
+  package_name: DegenGame
+  address_alias_instantiation:
+    Extensions: "0000000000000000000000000000000000000000000000000000000000000001"
+    aptos_framework: "0000000000000000000000000000000000000000000000000000000000000001"
+    aptos_std: "0000000000000000000000000000000000000000000000000000000000000001"
+    aptos_token: "0000000000000000000000000000000000000000000000000000000000000003"
+    core_resources: 000000000000000000000000000000000000000000000000000000000a550c18
+    default_admin: a2c656b06aeff1406fd5ff837fa5b07825437a5f1ce6d75cad3f4e5c39ea955b
+    degengame: e8f6ae923fc761ae5543e72540d9266d6150412917883b05ace80777a9712ebc
+    dev: 0f9d24010ad96659ee980598ff3848911253bda014e8fe59ce40e9eed9f6585a
+    devaddress: 5e68e6d7f96a19416175cbfc2dfa571d1ca0c0f3bdb66b233f8581c24abb6485
+    pancake: c7efb4076dbe143cbcd98cfaaa929ecfc8f299203dfff63b95ccb6bfe19850fa
+    std: "0000000000000000000000000000000000000000000000000000000000000001"
+    test_coin: "0000000000000000000000000000000000000000000000000000000000000016"
+    testcoin: "0000000000000000000000000000000000000000000000000000000000000016"
+    vm_reserved: "0000000000000000000000000000000000000000000000000000000000000000"
+    zero: "0000000000000000000000000000000000000000000000000000000000000000"
+  source_digest: 8C810E0774BDE31A13A8E4DA56A17EE1C02A10D10D64043F8309194C15A20DE9
+  build_flags:
+    dev_mode: true
+    test_mode: true
+    generate_docs: false
+    generate_abis: false
+    install_dir: ~
+    force_recompilation: false
+    additional_named_addresses: {}
+    architecture: ~
+    fetch_deps_only: false
+    skip_fetch_latest_git_deps: false
+    compiler_config:
+      bytecode_version: ~
+      known_attributes:
+        - bytecode_instruction
+        - deprecated
+        - event
+        - expected_failure
+        - legacy_entry_fun
+        - native_interface
+        - resource_group
+        - resource_group_member
+        - test
+        - test_only
+        - verify_only
+        - view
+      skip_attribute_checks: false
+      compiler_version: ~
+dependencies:
+  - AptosFramework
+  - AptosStdlib
+  - MoveStdlib
+  - PancakeSwap
