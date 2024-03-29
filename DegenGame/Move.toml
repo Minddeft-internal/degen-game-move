@@ -1,0 +1,17 @@
+[package]
+name = "DegenGame"
+version = "1.0.0"
+authors = []
+
+[addresses]
+degengame = "0x5e68e6d7f96a19416175cbfc2dfa571d1ca0c0f3bdb66b233f8581c24abb6485"
+devaddress = "0x5e68e6d7f96a19416175cbfc2dfa571d1ca0c0f3bdb66b233f8581c24abb6485"
+testcoin = "0x16"
+
+[dev-addresses]
+
+[dependencies]
+AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git",subdir = "aptos-move/framework/aptos-framework",rev = "mainnet"}
+PancakeSwap = { local = "../pancake-swap" }
+
+[dev-dependencies]
