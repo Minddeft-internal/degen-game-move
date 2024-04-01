@@ -40,9 +40,18 @@ module degengame::test{
     #[test(dev = @devaddress, resource_account = @degengame,feedes=@0x123)]
     fun test_initialize(dev:&signer,resource_account:&signer,feedes:&signer){
         setup_test_with_genesis(dev,resource_account,feedes);
+    }
 
-        
+    #[test(dev = @devaddress, resource_account = @degengame,feedes=@0x123)]
+    fun test_create_token(dev:&signer,resource_account:&signer,feedes:&signer){
+        setup_test_with_genesis(dev,resource_account,feedes);
 
+        degengame::main::set_protocol_fee_percent(dev,50000);
+        degengame::main::set_subject_fee_percent(dev,50000);
+
+        degengame::main::create_share(dev,string::utf8(b"Test"),string::utf8(b"TSC"),100,1);
+
+        // degengame::main::create_share(dev,string::utf8(b"Test1"),string::utf8(b"TSC"),100,1);
     }
 
 
