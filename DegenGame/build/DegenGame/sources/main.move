@@ -20,14 +20,15 @@ module degengame::main{
     const ERROR_INSUFFICIENT_SHARES:u64 = 5;
     const ERROR_NOT_PROTOCOL_FEE_DESTINATION:u64 = 6;
     const ERROR_TOKEN_ALREADY_EXIST_FOR_THIS_NAME:u64 = 7;
+    const ERROR_BUYING_IS_DISABLE:u64 = 8;
 
     const DEV:address = @devaddress;
     const RESOURCE_ACCOUNT:address = @degengame;
 
     const APTOS:u64 = 100000000;
 
-    struct Coin<phantom ShareAddress> {
-
+    struct DegenGameCoin has key{
+     
     }
 
     struct ShareMetaData has key {
@@ -43,10 +44,10 @@ module degengame::main{
         aptos_balance:coin::Coin<AptosCoin>
     }
 
-    struct ShareTokenCap<phantom ShareAddress> has key{
-        mint_capability:MintCapability<Coin<ShareAddress>>,
-        burn_capability:BurnCapability<Coin<ShareAddress>>,
-        freeze_capability:FreezeCapability<Coin<ShareAddress>>,
+    struct ShareTokenCap has key{
+        mint_capability:MintCapability<DegenGameCoin>,
+        burn_capability:BurnCapability<DegenGameCoin>,
+        freeze_capability:FreezeCapability<DegenGameCoin>,
     }
 
     struct DataStorage has key,store {
@@ -56,15 +57,24 @@ module degengame::main{
         protocol_fee_percent:u64,
         subject_fee_percent:u64,
         collected_protocol_fees:coin::Coin<AptosCoin>,
-        create_token_event:event::EventHandle<CreateTokenEvent>
+        create_share_event:event::EventHandle<CreateShareEvent>,
+        buy_share_event:event::EventHandle<BuyShareEvent>
     }
 
-    struct CreateTokenEvent has copy,store,drop{
+    struct CreateShareEvent has copy,store,drop{
         share_address:address,
         token_owner:address,
         threshold:u64,
         token_name:string::String,
         token_symbol:string::String,
+    }
+
+    struct BuyShareEvent has copy,store,drop{
+        share_address:address,
+        amount:u64,
+        price:u64,
+        protocol_fee:u64,
+        subject_fee:u64,
     }   
     
     fun init_module(sender:&signer) {
@@ -73,6 +83,7 @@ module degengame::main{
 
         let resource_signer = account::create_signer_with_capability(&signer_cap);
 
+
         move_to(&resource_signer,DataStorage{
             signer_cap:signer_cap,
             owner:DEV,
@@ -80,7 +91,8 @@ module degengame::main{
             protocol_fee_percent:0,
             subject_fee_percent:0,
             collected_protocol_fees:coin::zero<AptosCoin>(),
-            create_token_event:account::new_event_handle<CreateTokenEvent>(sender)
+            create_share_event:account::new_event_handle<CreateShareEvent>(sender),
+            buy_share_event:account::new_event_handle<BuyShareEvent>(sender)
         })
 
     }
@@ -149,7 +161,7 @@ module degengame::main{
     public fun get_buy_price(share_subject:address,amount:u64):u64 acquires ShareMetaData{
 
         //check whether subject account already exist or not
-        assert!(exists<ShareMetaData>(share_subject), ERROR_SHARES_SUBJECT_NOT_EXIST);
+        is_share_exist(share_subject);
 
         let share_meta_data = borrow_global<ShareMetaData>(share_subject);
 
@@ -162,7 +174,7 @@ module degengame::main{
     public fun get_sell_price(share_subject:address,amount:u64):u64 acquires ShareMetaData{
         
         //check whether subject account already exist or not
-        assert!(exists<ShareMetaData>(share_subject), ERROR_SHARES_SUBJECT_NOT_EXIST);
+        is_share_exist(share_subject);
 
         let share_meta_data = borrow_global<ShareMetaData>(share_subject);
 
@@ -171,9 +183,37 @@ module degengame::main{
         get_price(supply - amount,amount)
     }
 
+    #[view]
+    public fun get_buy_price_after_fee(shares_subject:address,amount:u64):u64 acquires DataStorage,ShareMetaData {
+
+        let price = get_buy_price(shares_subject,amount);
+
+        let datastorage = borrow_global<DataStorage>(RESOURCE_ACCOUNT);
+
+        let protocol_fee = price * datastorage.protocol_fee_percent / APTOS;
+
+        let subject_fee = price * datastorage.subject_fee_percent / APTOS;
+
+        price + protocol_fee + subject_fee
+    }
+
+    #[view]
+    public fun get_sell_price_after_fee(shares_subject:address,amount:u64):u64 acquires DataStorage,ShareMetaData {
+    
+        let price = get_sell_price(shares_subject,amount);
+        
+        let datastorage = borrow_global<DataStorage>(RESOURCE_ACCOUNT);
+
+        let protocol_fee = price * datastorage.protocol_fee_percent / APTOS;
+
+        let subject_fee = price * datastorage.subject_fee_percent / APTOS;
+
+        price - protocol_fee - subject_fee
+
+    }
 
 
-    public entry fun create_share(sender:&signer,token_name:string::String,token_symbol:string::String,threshold:u64,amount:u64)acquires DataStorage,ShareMetaData {
+    public entry fun create_share(sender:&signer,token_name:string::String,token_symbol:string::String,threshold:u64)acquires DataStorage,ShareMetaData {
         
         let sender_address = signer::address_of(sender);
 
@@ -182,6 +222,10 @@ module degengame::main{
         assert!(!account::exists_at(resource_address), ERROR_TOKEN_ALREADY_EXIST_FOR_THIS_NAME);
 
         let (resource_signer, signer_cap) = account::create_resource_account(sender,*string::bytes(&token_name));
+
+        aptos_framework::debug::print(&signer::address_of(&resource_signer));
+
+        move_to<DegenGameCoin>(&resource_signer,DegenGameCoin{});
 
         move_to<ShareMetaData>(&resource_signer,ShareMetaData{
             signer_cap:signer_cap,
@@ -196,12 +240,14 @@ module degengame::main{
             aptos_balance:coin::zero<AptosCoin>()
         });
 
+       
+
         //Buy 1 share when create new share subject
         buy_share_internal(sender,signer::address_of(&resource_signer),1);
 
         let datastorage = borrow_global_mut<DataStorage>(RESOURCE_ACCOUNT);
 
-        event::emit_event(&mut datastorage.create_token_event,CreateTokenEvent{
+        event::emit_event(&mut datastorage.create_share_event,CreateShareEvent{
             share_address:signer::address_of(&resource_signer),
             token_owner:signer::address_of(sender),
             threshold:threshold,
@@ -211,17 +257,31 @@ module degengame::main{
        
     }
 
+
+    public entry fun buy_share(sender:&signer,share_subject:address,amount:u64)acquires DataStorage,ShareMetaData{
+
+        is_share_exist(share_subject);
+
+        let share_meta_data = borrow_global<ShareMetaData>(share_subject);
+
+        assert!(share_meta_data.share_supply > 0 ,ERROR_ONLY_SHARE_SUBJECT_BUY_FIRST_SHARE);
+
+        buy_share_internal(sender,share_subject,amount);
+
+    }
+
     fun buy_share_internal(sender:&signer,share_subject:address,amount:u64)acquires DataStorage,ShareMetaData{
 
-        let sender_address = signer::address_of(sender);
-
-        // Auto register aptos
-        if (!coin::is_account_registered<AptosCoin>(sender_address)) {
-            coin::register<AptosCoin>(sender);
-        };
+        //register aptos if it's not register
+        register_aptos(sender);
 
         //check whether subject account already exist or not
-        assert!(exists<ShareMetaData>(share_subject), ERROR_SHARES_SUBJECT_NOT_EXIST);
+        is_share_exist(share_subject);
+
+        //check threshold reached or not
+        is_threshold_reached(share_subject);
+
+        let sender_address = signer::address_of(sender);
 
         let share_meta_data = borrow_global_mut<ShareMetaData>(share_subject);
 
@@ -235,6 +295,7 @@ module degengame::main{
 
         let aptos_balance = coin::balance<AptosCoin>(sender_address);
 
+        //checking user have enough aptos for this transaction
         assert!(aptos_balance >= price + protocol_fee + subject_fee, ERROR_INSUFFICIENT_PAYMENT);
 
         let share_balance = table::borrow_mut_with_default(&mut share_meta_data.share_balance,sender_address,0);
@@ -242,14 +303,7 @@ module degengame::main{
         *share_balance = *share_balance + amount;
 
         share_meta_data.share_supply = share_meta_data.share_supply + amount;
-
-        aptos_framework::debug::print(&price);
-        aptos_framework::debug::print(&protocol_fee);
-        aptos_framework::debug::print(&subject_fee);
-
-        //Deposit price amount to pool
-        let price_amount = coin::withdraw<AptosCoin>(sender,price);
-        coin::merge(&mut share_meta_data.aptos_balance,price_amount);
+        
 
         //Deposit protocol fees amount to pool
         let protocol_fee_amount = coin::withdraw<AptosCoin>(sender,protocol_fee);
@@ -257,13 +311,109 @@ module degengame::main{
 
         //Transfer subject fees to owner
         coin::transfer<AptosCoin>(sender,share_meta_data.share_owner,subject_fee);
+
+        //Deposit price amount to pool
+        // let price_amount = coin::withdraw<AptosCoin>(sender,price);
+        // coin::merge(&mut share_meta_data.aptos_balance,price_amount);
+        transfer_to_pool(sender,share_subject,price);
+
+        check_and_switch_threshold(share_subject);
+
+
+        event::emit_event(&mut datastorage.buy_share_event,BuyShareEvent{
+            share_address:share_subject,
+            amount:amount,
+            price:price,
+            protocol_fee:protocol_fee,
+            subject_fee:subject_fee,
+        })
        
     }
 
-    fun check_is_threshold_reached(){
+    fun transfer_to_pool(sender:&signer,share_subject:address,price:u64)acquires ShareMetaData{
+
+        let share_meta_data = borrow_global<ShareMetaData>(share_subject);
+
+        let share_signer = account::create_signer_with_capability(&share_meta_data.signer_cap);
+
+        register_aptos(&share_signer);
+
+        coin::transfer<AptosCoin>(sender,share_subject,price);
+
+        aptos_framework::debug::print(&share_meta_data.is_reached_threshold);
+        aptos_framework::debug::print(&coin::balance<AptosCoin>(share_subject));
 
     }
 
+
+
+    fun check_and_switch_threshold(share_subject:address)acquires ShareMetaData{
+
+        let share_meta_data = borrow_global_mut<ShareMetaData>(share_subject);
+
+        let aptos_balance = coin::value(&share_meta_data.aptos_balance);
+
+        let share_signer = account::create_signer_with_capability(&share_meta_data.signer_cap);
+
+        create_share_token(&share_signer,share_meta_data.token_name,share_meta_data.token_symbol);
+
+        //change is_reached_threshold if threshold reached
+        if(aptos_balance >= share_meta_data.threshold){
+            
+            share_meta_data.is_reached_threshold = true;   
+        };
+
+    }
+
+    fun add_liquidity_to_pancake(share_supply:u64){
+
+    }
+
+    fun create_share_token(share_signer:&signer,token_name:string::String,token_symbol:string::String){
+
+        let (burn_cap, freeze_cap, mint_cap) = coin::initialize<DegenGameCoin>(
+            share_signer,
+            token_name,
+            token_symbol,
+            8,
+            true
+        );
+
+        move_to<ShareTokenCap>(
+            share_signer,
+            ShareTokenCap {
+                burn_capability:burn_cap,
+                freeze_capability:freeze_cap,
+                mint_capability:mint_cap
+            }
+        );
+
+
+    }
+
+    fun is_threshold_reached(share_subject:address)acquires ShareMetaData{
+        
+        let share_meta_data = borrow_global_mut<ShareMetaData>(share_subject);
+
+        //check whether curve is disable or not
+        assert!(!share_meta_data.is_reached_threshold, ERROR_BUYING_IS_DISABLE);
+    }
+
+    fun is_share_exist(share_subject:address){
+
+         //check whether subject account already exist or not
+        assert!(exists<ShareMetaData>(share_subject), ERROR_SHARES_SUBJECT_NOT_EXIST);
+    }
+
+    fun register_aptos(sender:&signer){
+
+        let sender_address = signer::address_of(sender);
+
+        // Auto register aptos
+        if (!coin::is_account_registered<AptosCoin>(sender_address)) {
+            coin::register<AptosCoin>(sender);
+        };
+    }
 
 
     #[test_only]
