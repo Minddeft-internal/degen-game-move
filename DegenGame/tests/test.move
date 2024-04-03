@@ -52,13 +52,16 @@ module degengame::test{
 
         degengame::main::register_and_mint(dev,10000000000);
 
-        degengame::main::create_share(dev,string::utf8(b"Test"),string::utf8(b"TSC"),10);
+        degengame::main::create_share(dev,string::utf8(b"Test"),string::utf8(b"TSC"),10000000000);
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&string::utf8(b"Test")));
 
-        debug::print(&share_subject);
+        // debug::print(&share_subject);
 
-        degengame::main::buy_share(dev,share_subject,10);
+        degengame::main::buy_share(dev,share_subject,1);
+        degengame::main::buy_share(dev,share_subject,1);
+
+        // degengame::main::sell_shares(feedes,share_subject,1);
         // degengame::main::buy_share(dev,share_subject,50);
         // degengame::main::buy_share(dev,share_subject,50);
 

@@ -4,6 +4,10 @@ version = "1.0.0"
 authors = []
 
 [addresses]
+# degengame = "0x07bea1b78dba0d76c0541f155f2471f1dfdde96a0457d1f07c0bb9f878200bf4"
+# devaddress = "0x5e68e6d7f96a19416175cbfc2dfa571d1ca0c0f3bdb66b233f8581c24abb6485"
+# testcoin = "0x16"
+
 degengame = "e8f6ae923fc761ae5543e72540d9266d6150412917883b05ace80777a9712ebc"
 devaddress = "0x5e68e6d7f96a19416175cbfc2dfa571d1ca0c0f3bdb66b233f8581c24abb6485"
 testcoin = "0x16"
@@ -12,6 +16,6 @@ testcoin = "0x16"
 
 [dependencies]
 AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git",subdir = "aptos-move/framework/aptos-framework",rev = "mainnet"}
-PancakeSwap = { local = "../pancake-swap" }
+# PancakeSwap = { local = "../pancake-swap" }
 
 [dev-dependencies]
