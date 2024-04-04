@@ -50,7 +50,7 @@ module degengame::test{
         degengame::main::set_protocol_fee_percent(dev,50000);
         degengame::main::set_subject_fee_percent(dev,50000);
 
-        degengame::main::register_and_mint(dev,10000000000);
+        degengame::main::register_and_mint(dev,100000000000000);
 
         degengame::main::create_share(dev,string::utf8(b"Test"),string::utf8(b"TSC"),10000000000);
 
@@ -58,10 +58,12 @@ module degengame::test{
 
         // debug::print(&share_subject);
 
-        degengame::main::buy_share(dev,share_subject,1);
-        degengame::main::buy_share(dev,share_subject,1);
+        degengame::main::buy_share(dev,share_subject,100,10000000000000);
+        degengame::main::buy_share(dev,share_subject,100,10000000000000);
+        // degengame::main::buy_share(dev,share_subject,100,10000000000000);
+        // degengame::main::buy_share(dev,share_subject,1,100000000);
 
-        // degengame::main::sell_shares(feedes,share_subject,1);
+        // degengame::main::sell_shares(dev,share_subject,1,0);
         // degengame::main::buy_share(dev,share_subject,50);
         // degengame::main::buy_share(dev,share_subject,50);
 

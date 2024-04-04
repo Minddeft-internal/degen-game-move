@@ -7,20 +7,21 @@ compiled_package_info:
     aptos_std: "0000000000000000000000000000000000000000000000000000000000000001"
     aptos_token: "0000000000000000000000000000000000000000000000000000000000000003"
     core_resources: 000000000000000000000000000000000000000000000000000000000a550c18
-    degengame: e8f6ae923fc761ae5543e72540d9266d6150412917883b05ace80777a9712ebc
+    degengame: f763d7400dad0b650b4cf72692c873b17d913c542162b6acc0f2264e8b08cfc8
     devaddress: 5e68e6d7f96a19416175cbfc2dfa571d1ca0c0f3bdb66b233f8581c24abb6485
     std: "0000000000000000000000000000000000000000000000000000000000000001"
     testcoin: "0000000000000000000000000000000000000000000000000000000000000016"
     vm_reserved: "0000000000000000000000000000000000000000000000000000000000000000"
-  source_digest: BB28D0AADF6ECE54772C11F1C6A02FC108BABC9B21C65C24167C2DE5AC316C03
+  source_digest: F21282897D364A76D58C8CAFFC5AAC007BD58EE74F6B084657D965F972FDCA09
   build_flags:
-    dev_mode: true
-    test_mode: true
+    dev_mode: false
+    test_mode: false
     generate_docs: false
     generate_abis: false
     install_dir: ~
     force_recompilation: false
-    additional_named_addresses: {}
+    additional_named_addresses:
+      degengame: f763d7400dad0b650b4cf72692c873b17d913c542162b6acc0f2264e8b08cfc8
     architecture: ~
     fetch_deps_only: false
     skip_fetch_latest_git_deps: false
