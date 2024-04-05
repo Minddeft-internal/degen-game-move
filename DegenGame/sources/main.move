@@ -348,9 +348,6 @@ module degengame::main{
         //check whether subject account already exist or not
         is_share_exist(share_subject);
 
-        //check threshold reached or not
-        is_threshold_reached(share_subject);
-
         let sender_address = signer::address_of(sender);
 
         let share_meta_data = borrow_global_mut<ShareMetaData>(share_subject);
@@ -410,9 +407,6 @@ module degengame::main{
         //check whether subject account already exist or not
         is_share_exist(share_subject);
 
-        //check threshold reached or not
-        is_threshold_reached(share_subject);
-
         let sender_address = signer::address_of(sender);
 
         let share_meta_data = borrow_global_mut<ShareMetaData>(share_subject);
@@ -452,8 +446,7 @@ module degengame::main{
             transfer_to_share_resource_account(sender,share_subject,price);
         };
 
-        check_and_switch_threshold(share_subject);
-
+    
         event::emit_event(&mut datastorage.buy_share_event,BuyShareEvent{
             share_address:share_subject,
             amount:amount,
@@ -492,19 +485,7 @@ module degengame::main{
 
     }
 
-    fun check_and_switch_threshold(share_subject:address)acquires ShareMetaData{
 
-        let share_meta_data = borrow_global_mut<ShareMetaData>(share_subject);
-
-        let aptos_balance = coin::balance<AptosCoin>(share_subject);
-
-        //change is_reached_threshold if threshold reached
-        if(aptos_balance >= share_meta_data.threshold){
-            
-            share_meta_data.is_reached_threshold = true;  
-        };
-
-    }
 
     // fun add_liquidity_to_pancake(share_supply:u64){
 
@@ -547,13 +528,6 @@ module degengame::main{
         assert!(datastorage.protocol_fee_destination == signer::address_of(sender), ERROR_NOT_PROTOCOL_FEE_DESTINATION);
     }
 
-    fun is_threshold_reached(share_subject:address)acquires ShareMetaData{
-        
-        let share_meta_data = borrow_global_mut<ShareMetaData>(share_subject);
-
-        //check whether curve is disable or not
-        assert!(!share_meta_data.is_reached_threshold, ERROR_CURVE_IS_DISABLE);
-    }
 
     fun is_share_exist(share_subject:address){
 
