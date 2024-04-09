@@ -8,7 +8,8 @@ module degengame::main{
     use aptos_framework::aptos_coin::{AptosCoin};
     use aptos_framework::string::{Self};
     use aptos_framework::event::{Self};
-
+    use pancake::swap::LPToken;
+    use aptos_framework::string_utils::to_string;
 
     //ERRORS 
     const ERROR_NOT_ADMIN:u64 = 0;
@@ -23,6 +24,9 @@ module degengame::main{
     const ERROR_INSUFFICIENT_MAX_IN_AMOUNT:u64 = 9;
     const ERROR_INSUFFICIENT_MIN_OUT_AMOUNT:u64 = 10;
     const ERROR_ZERO_FEES_COLLECTED_IN_VAULT:u64 = 11;
+    const ERROR_ZERO_ACCOUNT:u64 = 12;
+    const ERROR_NO_CHANGES_DETECTED:u64 = 13;
+    const ERROR_CLAIMING_IS_NOT_STARTED_YET:u64 = 14;
 
     const DEV:address = @devaddress;
     const RESOURCE_ACCOUNT:address = @degengame;
@@ -32,8 +36,7 @@ module degengame::main{
     struct DegenGameCoin<phantom UID1,phantom UID2> has key{
      
     }
-
-
+    
     struct ShareMetaData has key {
         signer_cap:account::SignerCapability,
         token_name:string::String,
@@ -67,6 +70,8 @@ module degengame::main{
         set_protocol_fee_percent_event:event::EventHandle<SetProtocolFeePercentEvent>,
         set_subject_fee_percent_event:event::EventHandle<SetSubjectFeePercentEvent>,
         collect_protocol_fees_event:event::EventHandle<CollectProtocolFeesEvent>,
+        add_liquidity_to_pancake_event:event::EventHandle<AddLiquidityToPancakeEvent>,
+        claim_token_event:event::EventHandle<ClaimTokenEvent>
     }
 
     struct SetFeeDestinationEvent has copy,store,drop{
@@ -111,8 +116,19 @@ module degengame::main{
         price:u64,
         protocol_fee:u64,
         subject_fee:u64,
+    } 
+
+    struct AddLiquidityToPancakeEvent has copy,store,drop{
+        share_address:address,
+        coin_x:u64,
+        coin_y:u64,
     }  
 
+    struct ClaimTokenEvent has copy,store,drop{
+        share_address:address,
+        sender:address,
+        claim_amount:u64,
+    }  
 
     fun init_module(sender:&signer) {
         
@@ -134,14 +150,18 @@ module degengame::main{
             set_protocol_fee_percent_event:account::new_event_handle<SetProtocolFeePercentEvent>(sender),
             set_subject_fee_percent_event:account::new_event_handle<SetSubjectFeePercentEvent>(sender),
             collect_protocol_fees_event:account::new_event_handle<CollectProtocolFeesEvent>(sender),
+            add_liquidity_to_pancake_event:account::new_event_handle<AddLiquidityToPancakeEvent>(sender),
+            claim_token_event:account::new_event_handle<ClaimTokenEvent>(sender),
         })
 
     }
 
-
     public entry fun set_fee_destination(sender:&signer,fee_destination:address)acquires DataStorage{
+        
         //Check whether caller is owner or not
         is_owner(sender);
+
+        is_zero_address(fee_destination);
 
         let datastorage = borrow_global_mut<DataStorage>(RESOURCE_ACCOUNT);
 
@@ -157,12 +177,15 @@ module degengame::main{
     }
 
     public entry fun set_protocol_fee_percent(sender:&signer,fee_percent:u64) acquires DataStorage{
+        
         //Check whether caller is owner or not
         is_owner(sender);
 
         let datastorage = borrow_global_mut<DataStorage>(RESOURCE_ACCOUNT);
 
         let old_fee_percent = datastorage.protocol_fee_percent;
+
+        assert!(fee_percent != old_fee_percent, ERROR_NO_CHANGES_DETECTED);
         
         datastorage.protocol_fee_percent = fee_percent;
 
@@ -180,6 +203,8 @@ module degengame::main{
         let datastorage = borrow_global_mut<DataStorage>(RESOURCE_ACCOUNT);
 
         let old_fee_percent = datastorage.subject_fee_percent;
+
+        assert!(fee_percent != old_fee_percent, ERROR_NO_CHANGES_DETECTED);
         
         datastorage.subject_fee_percent = fee_percent;
 
@@ -212,18 +237,10 @@ module degengame::main{
 
     public fun get_price(supply:u64,amount:u64):u64{
 
-        let sum1 =  if(supply == 0) {
-            0
-        }else{
-            (supply - 1 )* (supply) * (2 * (supply - 1) + 1) / 6
-        };
+        let sum1 = if(supply == 0) 0 else (supply - 1 )* (supply) * (2 * (supply - 1) + 1) / 6 ;
 
-        let sum2 =  if(supply == 0 && amount == 1) {
-            0
-        }else{
-            (supply - 1 + amount) * (supply + amount) * (2 * (supply - 1 + amount) + 1) / 6
-        };
-
+        let sum2 = if(supply == 0 && amount == 1) 0 else (supply - 1 + amount) * (supply + amount) * (2 * (supply - 1 + amount) + 1) / 6 ;
+        
         let summation = sum2 - sum1;
 
         summation * APTOS / 16000
@@ -285,12 +302,15 @@ module degengame::main{
 
     }
 
-
-    public entry fun create_share(sender:&signer,token_name:string::String,token_symbol:string::String,threshold:u64)acquires DataStorage,ShareMetaData {
+    public entry fun create_share<UID1,UID2>(sender:&signer,token_name:string::String,token_symbol:string::String,threshold:u64)acquires DataStorage,ShareMetaData {
         
         let sender_address = signer::address_of(sender);
 
-        let resource_address = account::create_resource_address(&sender_address,*string::bytes(&token_name));
+        let seeds = string::utf8(b"");
+        string::append(&mut seeds,to_string(&@degengame));
+        string::append(&mut seeds,token_name);
+
+        let resource_address = account::create_resource_address(&sender_address,*string::bytes(&seeds));
 
         assert!(!account::exists_at(resource_address), ERROR_TOKEN_ALREADY_EXIST_FOR_THIS_NAME);
 
@@ -310,9 +330,9 @@ module degengame::main{
             is_reached_threshold:false,
             aptos_balance:coin::zero<AptosCoin>()
         });
-
+    
         //Buy 1 share when create new share subject
-        buy_share_internal(sender,signer::address_of(&resource_signer),1);
+        buy_share_internal<UID1,UID2>(sender,signer::address_of(&resource_signer),1);
 
         let datastorage = borrow_global_mut<DataStorage>(RESOURCE_ACCOUNT);
 
@@ -326,9 +346,7 @@ module degengame::main{
        
     }
 
-    
-   
-    public entry fun buy_share(sender:&signer,share_subject:address,amount:u64,max_in:u64)acquires DataStorage,ShareMetaData{
+    public entry fun buy_share<UID1,UID2>(sender:&signer,share_subject:address,amount:u64,max_in:u64)acquires DataStorage,ShareMetaData{
 
         is_share_exist(share_subject);
 
@@ -336,7 +354,7 @@ module degengame::main{
 
         assert!(share_meta_data.share_supply > 0 ,ERROR_ONLY_SHARE_SUBJECT_BUY_FIRST_SHARE);
 
-        let price = buy_share_internal(sender,share_subject,amount);
+        let price = buy_share_internal<UID1,UID2>(sender,share_subject,amount);
 
         assert!(price <= max_in,ERROR_INSUFFICIENT_MAX_IN_AMOUNT);
     }
@@ -403,7 +421,46 @@ module degengame::main{
         assert!(price >= min_out, ERROR_INSUFFICIENT_MIN_OUT_AMOUNT);
     }
 
-    fun buy_share_internal(sender:&signer,share_subject:address,amount:u64):u64 acquires DataStorage,ShareMetaData{
+    public entry fun claim_token<UID1,UID2>(sender:&signer,share_subject:address)acquires DataStorage,ShareMetaData,ShareTokenCap{
+
+        //check whether subject account already exist or not
+        is_share_exist(share_subject);
+
+        let sender_address = signer::address_of(sender);
+
+        let share_meta_data = borrow_global_mut<ShareMetaData>(share_subject);
+
+        //check whether curve is disable or not
+        assert!(share_meta_data.is_reached_threshold, ERROR_CLAIMING_IS_NOT_STARTED_YET);
+
+        let share_balance = table::borrow_mut_with_default(&mut share_meta_data.share_balance,sender_address,0);
+
+        assert!(*share_balance > 0, ERROR_INSUFFICIENT_SHARES);
+
+        let share_token_cap = borrow_global<ShareTokenCap<UID1,UID2>>(share_subject);
+
+        let coin_to_mint = (*share_balance * 10) * APTOS;
+
+        let minted_coin = coin::mint<DegenGameCoin<UID1,UID2>>(coin_to_mint,&share_token_cap.mint_capability);
+
+        //register coin if not registered
+        register_coin<UID1,UID2>(sender);
+        
+        coin::deposit<DegenGameCoin<UID1,UID2>>(sender_address,minted_coin);
+
+        *share_balance = 0;
+
+        let datastorage = borrow_global_mut<DataStorage>(RESOURCE_ACCOUNT);
+
+        event::emit_event(&mut datastorage.claim_token_event,ClaimTokenEvent{
+            share_address:share_subject,
+            sender:sender_address,
+            claim_amount:coin_to_mint
+        });
+
+    }
+
+    fun buy_share_internal<UID1,UID2>(sender:&signer,share_subject:address,amount:u64):u64 acquires DataStorage,ShareMetaData{
 
         //register aptos if it's not register
         register_aptos(sender);
@@ -453,8 +510,7 @@ module degengame::main{
             transfer_to_share_resource_account(sender,share_subject,price);
         };
 
-        check_and_switch_threshold(share_subject);
-
+       
         event::emit_event(&mut datastorage.buy_share_event,BuyShareEvent{
             share_address:share_subject,
             amount:amount,
@@ -462,6 +518,9 @@ module degengame::main{
             protocol_fee:protocol_fee,
             subject_fee:subject_fee,
         });
+
+        //check will threshold reached or not
+        check_and_switch_threshold<UID1,UID2>(share_subject);
 
         (price + protocol_fee + subject_fee)
        
@@ -493,9 +552,7 @@ module degengame::main{
 
     }
 
-
-
-    fun check_and_switch_threshold(share_subject:address)acquires ShareMetaData{
+    fun check_and_switch_threshold<UID1,UID2>(share_subject:address)acquires DataStorage,ShareMetaData{
 
         let share_meta_data = borrow_global_mut<ShareMetaData>(share_subject);
 
@@ -504,37 +561,87 @@ module degengame::main{
         //change is_reached_threshold if threshold reached
         if(aptos_balance >= share_meta_data.threshold){
             
-            share_meta_data.is_reached_threshold = true;  
+            share_meta_data.is_reached_threshold = true;
+
+            let share_signer = account::create_signer_with_capability(&share_meta_data.signer_cap);
+            //create token
+            create_share_token_and_mint_to_share_resource<UID1,UID2>(&share_signer,share_meta_data.token_name,share_meta_data.token_symbol);       
+            //add liquidity to pancake swap
+            add_liquidity_to_pancake_swap<UID1,UID2>(&share_signer);
+      
         };
 
     }
 
-    // fun add_liquidity_to_pancake(share_supply:u64){
+    fun create_share_token_and_mint_to_share_resource<UID1,UID2>(share_signer:&signer,token_name:string::String,token_symbol:string::String)acquires DataStorage,ShareMetaData{
 
-    // }
+        let datastorage = borrow_global<DataStorage>(RESOURCE_ACCOUNT);
 
-    // fun create_share_token(share_signer:&signer,token_name:string::String,token_symbol:string::String){
+        let resource_signer = account::create_signer_with_capability(&datastorage.signer_cap);
+        
+        let (burn_cap, freeze_cap, mint_cap) = coin::initialize<DegenGameCoin<UID1,UID2>>(
+            &resource_signer,
+            token_name,
+            token_symbol,
+            8,
+            true
+        );
 
-    //     let (burn_cap, freeze_cap, mint_cap) = coin::initialize<DegenGameCoin>(
-    //         share_signer,
-    //         token_name,
-    //         token_symbol,
-    //         8,
-    //         true
-    //     );
+        //Mint 10x of share_supply coin into share resource account
+        mint_coin_to_share_resource_account<UID1,UID2>(share_signer,&mint_cap);
 
-    //     move_to<ShareTokenCap>(
-    //         share_signer,
-    //         ShareTokenCap {
-    //             burn_capability:burn_cap,
-    //             freeze_capability:freeze_cap,
-    //             mint_capability:mint_cap
-    //         }
-    //     );
+        move_to<ShareTokenCap<UID1,UID2>>(
+            share_signer,
+            ShareTokenCap {
+                burn_capability:burn_cap,
+                freeze_capability:freeze_cap,
+                mint_capability:mint_cap
+            }
+        );
+    }
 
+    fun mint_coin_to_share_resource_account<UID1,UID2>(share_signer:&signer,mint_cap:&MintCapability<DegenGameCoin<UID1,UID2>>)acquires ShareMetaData{
 
-    // }
+        let share_address = signer::address_of(share_signer);
 
+        let share_meta_data = borrow_global<ShareMetaData>(share_address);
+
+        //Mint 50% of coin to share resource account
+        let coins_to_mint = (share_meta_data.share_supply * 10) * APTOS;
+
+        register_coin<UID1,UID2>(share_signer);
+
+        let minted_tokens = coin::mint<DegenGameCoin<UID1,UID2>>(coins_to_mint,mint_cap);
+
+        coin::deposit<DegenGameCoin<UID1,UID2>>(share_address,minted_tokens);
+    }
+
+    fun add_liquidity_to_pancake_swap<UID1,UID2>(share_signer:&signer)acquires DataStorage,ShareMetaData{
+
+        let share_address = signer::address_of(share_signer);
+
+        let share_meta_data = borrow_global<ShareMetaData>(share_address);
+
+        let coin_x = (share_meta_data.share_supply * 10) * APTOS; 
+
+        let coin_y = coin::balance<AptosCoin>(share_address);
+
+        //Add liquidity to pancake swap
+        pancake::router::add_liquidity<DegenGameCoin<UID1,UID2>,AptosCoin>(share_signer,coin_x,coin_y,0,0);
+
+        let datastorage = borrow_global_mut<DataStorage>(RESOURCE_ACCOUNT);
+
+        event::emit_event(&mut datastorage.add_liquidity_to_pancake_event,AddLiquidityToPancakeEvent{
+            share_address:share_address,
+            coin_x:coin_x,
+            coin_y:coin_y
+        }); 
+    }
+
+    fun is_zero_address(account:address){
+    
+        assert!(account != @0x0, ERROR_NOT_ADMIN);
+    }
 
     fun is_owner(sender:&signer)acquires DataStorage{
         let datastorage = borrow_global<DataStorage>(RESOURCE_ACCOUNT);
@@ -570,6 +677,15 @@ module degengame::main{
         };
     }
 
+    fun register_coin<UID1,UID2>(sender:&signer){
+
+        let sender_address = signer::address_of(sender);
+
+        // Auto register aptos
+        if (!coin::is_account_registered<DegenGameCoin<UID1,UID2>>(sender_address)) {
+            coin::register<DegenGameCoin<UID1,UID2>>(sender);
+        };
+    }
 
     #[test_only]
     use aptos_framework::managed_coin;
@@ -624,8 +740,6 @@ module degengame::main{
     public fun aptos_balance(to:address):u64 {
         coin::balance<AptosCoin>(to)
     }
-
-
 
     #[test_only]
     public fun get_data():(address,u64,u64,u64) acquires DataStorage{
