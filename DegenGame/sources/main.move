@@ -8,11 +8,11 @@ module degengame::main{
     use aptos_framework::aptos_coin::{AptosCoin};
     use aptos_framework::string::{Self};
     use aptos_framework::event::{Self};
-    use pancake::swap::LPToken;
     use aptos_framework::string_utils::to_string;
 
+
     //ERRORS 
-    const ERROR_NOT_ADMIN:u64 = 0;
+    const ERROR_NOT_OWNER:u64 = 0;
     const ERROR_SHARES_SUBJECT_NOT_EXIST:u64 = 1;
     const ERROR_ONLY_SHARE_SUBJECT_BUY_FIRST_SHARE:u64 = 2;
     const ERROR_INSUFFICIENT_PAYMENT:u64 = 3;
@@ -218,6 +218,8 @@ module degengame::main{
 
         is_protocol_fee_destination(sender);
 
+        register_aptos(sender);
+
         let datastorage = borrow_global_mut<DataStorage>(RESOURCE_ACCOUNT);
 
         let collected_protocol_fees = coin::extract_all(&mut datastorage.collected_protocol_fees);
@@ -302,19 +304,19 @@ module degengame::main{
 
     }
 
-    public entry fun create_share<UID1,UID2>(sender:&signer,token_name:string::String,token_symbol:string::String,threshold:u64)acquires DataStorage,ShareMetaData {
+    public entry fun create_share<UID1,UID2>(sender:&signer,token_name:string::String,token_symbol:string::String,threshold:u64)acquires DataStorage,ShareMetaData,ShareTokenCap {
         
         let sender_address = signer::address_of(sender);
 
-        let seeds = string::utf8(b"");
-        string::append(&mut seeds,to_string(&@degengame));
-        string::append(&mut seeds,token_name);
+        //Create unique seeds for all coins
+        let seeds = get_seeds(token_name);
 
         let resource_address = account::create_resource_address(&sender_address,*string::bytes(&seeds));
 
+        //Check whether the token name has already been taken by any user or not
         assert!(!account::exists_at(resource_address), ERROR_TOKEN_ALREADY_EXIST_FOR_THIS_NAME);
 
-        let (resource_signer, signer_cap) = account::create_resource_account(sender,*string::bytes(&token_name));
+        let (resource_signer, signer_cap) = account::create_resource_account(sender,*string::bytes(&seeds));
 
         register_aptos(&resource_signer);
 
@@ -330,6 +332,9 @@ module degengame::main{
             is_reached_threshold:false,
             aptos_balance:coin::zero<AptosCoin>()
         });
+
+        //Create share token
+        create_share_token<UID1,UID2>(&resource_signer,token_name,token_symbol);
     
         //Buy 1 share when create new share subject
         buy_share_internal<UID1,UID2>(sender,signer::address_of(&resource_signer),1);
@@ -346,7 +351,7 @@ module degengame::main{
        
     }
 
-    public entry fun buy_share<UID1,UID2>(sender:&signer,share_subject:address,amount:u64,max_in:u64)acquires DataStorage,ShareMetaData{
+    public entry fun buy_share<UID1,UID2>(sender:&signer,share_subject:address,amount:u64,max_in:u64)acquires DataStorage,ShareMetaData,ShareTokenCap{
 
         is_share_exist(share_subject);
 
@@ -460,7 +465,7 @@ module degengame::main{
 
     }
 
-    fun buy_share_internal<UID1,UID2>(sender:&signer,share_subject:address,amount:u64):u64 acquires DataStorage,ShareMetaData{
+    fun buy_share_internal<UID1,UID2>(sender:&signer,share_subject:address,amount:u64):u64 acquires DataStorage,ShareMetaData,ShareTokenCap{
 
         //register aptos if it's not register
         register_aptos(sender);
@@ -552,7 +557,7 @@ module degengame::main{
 
     }
 
-    fun check_and_switch_threshold<UID1,UID2>(share_subject:address)acquires DataStorage,ShareMetaData{
+    fun check_and_switch_threshold<UID1,UID2>(share_subject:address)acquires DataStorage,ShareMetaData,ShareTokenCap{
 
         let share_meta_data = borrow_global_mut<ShareMetaData>(share_subject);
 
@@ -564,8 +569,10 @@ module degengame::main{
             share_meta_data.is_reached_threshold = true;
 
             let share_signer = account::create_signer_with_capability(&share_meta_data.signer_cap);
-            //create token
-            create_share_token_and_mint_to_share_resource<UID1,UID2>(&share_signer,share_meta_data.token_name,share_meta_data.token_symbol);       
+                   
+            // //Mint 10x of share_supply coin into share resource account
+            mint_coin_to_share_resource_account<UID1,UID2>(&share_signer);
+            
             //add liquidity to pancake swap
             add_liquidity_to_pancake_swap<UID1,UID2>(&share_signer);
       
@@ -573,7 +580,7 @@ module degengame::main{
 
     }
 
-    fun create_share_token_and_mint_to_share_resource<UID1,UID2>(share_signer:&signer,token_name:string::String,token_symbol:string::String)acquires DataStorage,ShareMetaData{
+    fun create_share_token<UID1,UID2>(share_signer:&signer,token_name:string::String,token_symbol:string::String)acquires DataStorage{
 
         let datastorage = borrow_global<DataStorage>(RESOURCE_ACCOUNT);
 
@@ -587,8 +594,6 @@ module degengame::main{
             true
         );
 
-        //Mint 10x of share_supply coin into share resource account
-        mint_coin_to_share_resource_account<UID1,UID2>(share_signer,&mint_cap);
 
         move_to<ShareTokenCap<UID1,UID2>>(
             share_signer,
@@ -600,18 +605,20 @@ module degengame::main{
         );
     }
 
-    fun mint_coin_to_share_resource_account<UID1,UID2>(share_signer:&signer,mint_cap:&MintCapability<DegenGameCoin<UID1,UID2>>)acquires ShareMetaData{
+    fun mint_coin_to_share_resource_account<UID1,UID2>(share_signer:&signer)acquires ShareMetaData,ShareTokenCap{
 
         let share_address = signer::address_of(share_signer);
 
         let share_meta_data = borrow_global<ShareMetaData>(share_address);
+
+        let share_token_cap = borrow_global<ShareTokenCap<UID1,UID2>>(share_address);
 
         //Mint 50% of coin to share resource account
         let coins_to_mint = (share_meta_data.share_supply * 10) * APTOS;
 
         register_coin<UID1,UID2>(share_signer);
 
-        let minted_tokens = coin::mint<DegenGameCoin<UID1,UID2>>(coins_to_mint,mint_cap);
+        let minted_tokens = coin::mint<DegenGameCoin<UID1,UID2>>(coins_to_mint,&share_token_cap.mint_capability);
 
         coin::deposit<DegenGameCoin<UID1,UID2>>(share_address,minted_tokens);
     }
@@ -639,13 +646,13 @@ module degengame::main{
     }
 
     fun is_zero_address(account:address){
-    
-        assert!(account != @0x0, ERROR_NOT_ADMIN);
+
+        assert!(account != @0x0, ERROR_ZERO_ACCOUNT);
     }
 
     fun is_owner(sender:&signer)acquires DataStorage{
         let datastorage = borrow_global<DataStorage>(RESOURCE_ACCOUNT);
-        assert!(datastorage.owner == signer::address_of(sender), ERROR_NOT_ADMIN);
+        assert!(datastorage.owner == signer::address_of(sender), ERROR_NOT_OWNER);
     }
 
     fun is_protocol_fee_destination(sender:&signer)acquires DataStorage{
@@ -685,6 +692,17 @@ module degengame::main{
         if (!coin::is_account_registered<DegenGameCoin<UID1,UID2>>(sender_address)) {
             coin::register<DegenGameCoin<UID1,UID2>>(sender);
         };
+    }
+
+    fun get_seeds(token_name:string::String):string::String{
+
+        let seeds = string::utf8(b"");
+
+        string::append(&mut seeds,to_string(&@degengame));
+
+        string::append(&mut seeds,token_name);
+
+        seeds
     }
 
     #[test_only]
