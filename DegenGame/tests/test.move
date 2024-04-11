@@ -10,7 +10,7 @@ module degengame::test{
     use testcoin::testcoins::{Self,TestBNB,TestBUSD};
     use aptos_std::math64::pow;
     use aptos_framework::string::{Self,utf8};  
-    use degengame::ids::{Self,U0,U1};
+    use degengame::ids::{Self,U0,U1,U2};
     use aptos_framework::coin;
     use pancake::swap::LPToken;
     use aptos_framework::aptos_coin::AptosCoin;
@@ -207,9 +207,13 @@ module degengame::test{
 
         degengame::main::register_and_mint(dev,100000000000000);
 
-        degengame::main::create_share<U0,U1>(dev,string::utf8(b"DegenCoin"),string::utf8(b"DGC"),10000000000);
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 10000000000;
 
-        let seeds = get_seeds(string::utf8(b"DegenCoin"));
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
 
@@ -252,9 +256,13 @@ module degengame::test{
 
         degengame::main::register_and_mint(dev,100000000000000);
 
-        degengame::main::create_share<U0,U1>(dev,string::utf8(b"DegenCoin"),string::utf8(b"DGC"),10000000000);
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 10000000000;
 
-        let seeds = get_seeds(string::utf8(b"DegenCoin"));
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
 
@@ -298,9 +306,13 @@ module degengame::test{
 
         degengame::main::register_and_mint(dev,100000000000000);
 
-        degengame::main::create_share<U0,U1>(dev,string::utf8(b"DegenCoin"),string::utf8(b"DGC"),10000000000);
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 10000000000;
 
-        let seeds = get_seeds(string::utf8(b"DegenCoin"));
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
 
@@ -339,9 +351,13 @@ module degengame::test{
 
         degengame::main::register_and_mint(dev,100000000000000);
 
-        degengame::main::create_share<U0,U1>(dev,string::utf8(b"DegenCoin"),string::utf8(b"DGC"),10000000000);
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 10000000000;
 
-        let seeds = get_seeds(string::utf8(b"DegenCoin"));
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
         
@@ -359,9 +375,13 @@ module degengame::test{
 
         degengame::main::register_and_mint(dev,100000000000000);
 
-        degengame::main::create_share<U0,U1>(dev,string::utf8(b"DegenCoin"),string::utf8(b"DGC"),10000000000);
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 10000000000;
 
-        let seeds = get_seeds(string::utf8(b"DegenCoin"));
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
         
@@ -383,9 +403,13 @@ module degengame::test{
 
         degengame::main::register_and_mint(dev,100000000000000);
 
-        degengame::main::create_share<U0,U1>(dev,string::utf8(b"DegenCoin"),string::utf8(b"DGC"),10000000000);
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 10000000000;
 
-        let seeds = get_seeds(string::utf8(b"DegenCoin"));
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
         
@@ -403,9 +427,13 @@ module degengame::test{
 
         degengame::main::register_and_mint(dev,100000000000000);
 
-        degengame::main::create_share<U0,U1>(dev,string::utf8(b"DegenCoin"),string::utf8(b"DGC"),10000000000);
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 10000000000;
 
-        let seeds = get_seeds(string::utf8(b"DegenCoin"));
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
         
@@ -427,9 +455,13 @@ module degengame::test{
 
         degengame::main::register_and_mint(dev,100000000000000);
 
-        degengame::main::create_share<U0,U1>(dev,string::utf8(b"DegenCoin"),string::utf8(b"DGC"),10000000000);
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 10000000000;
 
-        let seeds = get_seeds(string::utf8(b"DegenCoin"));
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
         
@@ -447,9 +479,13 @@ module degengame::test{
 
         degengame::main::register_and_mint(dev,100000000000000);
 
-        degengame::main::create_share<U0,U1>(dev,string::utf8(b"DegenCoin"),string::utf8(b"DGC"),10000000000);
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 10000000000;
 
-        let seeds = get_seeds(string::utf8(b"DegenCoin"));
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
         
@@ -459,6 +495,421 @@ module degengame::test{
 
     } 
     //End get buy price after fee test cases
+
+
+    //Strat get sell price after fee test cases
+    #[test(dev = @devaddress, resource_account = @degengame,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
+    fun test_get_sell_price_after_fee(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+        
+        pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
+        
+        setup_test_with_genesis_for_pancake(dev,resource_account,feedes);
+
+        degengame::main::register_and_mint(dev,100000000000000);
+
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 10000000000;
+
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
+
+        let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
+        
+        let sell_price = degengame::main::get_sell_price_after_fee(share_subject,1);
+
+    } 
+
+    #[test(dev = @devaddress, resource_account = @degengame,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
+    #[expected_failure(abort_code = 1)]
+    fun test_get_sell_price_after_fee_with_worong_share_subject(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+        
+        pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
+        
+        setup_test_with_genesis_for_pancake(dev,resource_account,feedes);
+
+        degengame::main::register_and_mint(dev,100000000000000);
+
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 10000000000;
+
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
+
+        let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
+        
+        let sell_price = degengame::main::get_sell_price_after_fee(share_subject,1);
+
+        let sell_price1 = degengame::main::get_sell_price_after_fee(@0x01234,1);
+
+    } 
+    //End get sell price after fee test cases
+
+
+    //Start create share test cases
+    #[test(dev = @devaddress, resource_account = @degengame,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
+    fun test_create_share(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+        
+        pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
+        
+        setup_test_with_genesis_for_pancake(dev,resource_account,feedes);
+
+        degengame::main::register_and_mint(dev,100000000000000);
+
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 10000000000;
+
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+    } 
+
+    #[test(dev = @devaddress, resource_account = @degengame,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
+    fun test_create_share_and_check_creator_share_balance(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+        
+        pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
+        
+        setup_test_with_genesis_for_pancake(dev,resource_account,feedes);
+
+        degengame::main::register_and_mint(dev,100000000000000);
+
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 10000000000;
+
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
+
+        let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
+
+        let share_balance = degengame::main::get_share_balance(dev,share_subject);
+
+        assert!(share_balance == 1, 0x8);
+
+    } 
+
+    #[test(dev = @devaddress, resource_account = @degengame,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
+    #[expected_failure(abort_code = 7)]
+    fun test_create_share_with_same_toke_name(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+        
+        pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
+        
+        setup_test_with_genesis_for_pancake(dev,resource_account,feedes);
+
+        degengame::main::register_and_mint(dev,100000000000000);
+
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 10000000000;
+
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        //here we createing share with same name
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+    } 
+
+    #[test(dev = @devaddress, resource_account = @degengame,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
+    #[expected_failure(abort_code = 524290)]
+    fun test_create_share_with_same_ids(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+        
+        pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
+        
+        setup_test_with_genesis_for_pancake(dev,resource_account,feedes);
+
+        degengame::main::register_and_mint(dev,100000000000000);
+
+        let first_token_name = string::utf8(b"DegenCoin");
+        let first_token_symbol = string::utf8(b"DGC");
+        let first_token_threshold = 10000000000;
+
+        degengame::main::create_share<U0,U1>(dev,first_token_name,first_token_symbol,first_token_threshold);
+
+        let second_token_name = string::utf8(b"MdCoin");
+        let second_token_symbol = string::utf8(b"MDC");
+        let second_token_threshold = 10000000000;
+
+        //here we createing share with same name
+        degengame::main::create_share<U0,U1>(dev,second_token_name,second_token_symbol,second_token_threshold);
+    } 
+
+    #[test(dev = @devaddress, resource_account = @degengame,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
+    fun test_create_shares_with_multiple_ids(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+        
+        pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
+        
+        setup_test_with_genesis_for_pancake(dev,resource_account,feedes);
+
+        degengame::main::register_and_mint(dev,100000000000000);
+
+        let first_token_name = string::utf8(b"DegenCoin");
+        let first_token_symbol = string::utf8(b"DGC");
+        let first_token_threshold = 10000000000;
+
+        degengame::main::create_share<U0,U1>(dev,first_token_name,first_token_symbol,first_token_threshold);
+
+        let second_token_name = string::utf8(b"MdCoin");
+        let second_token_symbol = string::utf8(b"MDC");
+        let second_token_threshold = 10000000000;
+
+        //here we createing share with same name
+        degengame::main::create_share<U0,U2>(dev,second_token_name,second_token_symbol,second_token_threshold);
+    } 
+    //End create share test cases
+
+
+    //Start buy share test cases
+    #[test(dev = @devaddress,bob = @0x2121, resource_account = @degengame,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
+    fun test_buy_share(dev:&signer,bob:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+        
+        pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
+        
+        setup_test_with_genesis_for_pancake(dev,resource_account,feedes);
+
+        let bob_address = signer::address_of(bob);
+
+        account::create_account_for_test(bob_address);
+
+        let aptos_to_mint = 100000000000000;
+
+        degengame::main::register_and_mint(dev,aptos_to_mint);
+
+        degengame::main::register_and_mint(bob,aptos_to_mint);
+
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 10000000000;
+
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
+
+        let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
+
+        let shares_to_buy = 1;
+
+        let expected_buy_price = degengame::main::get_buy_price(share_subject,shares_to_buy);
+
+        let user_balance_before = coin::balance<AptosCoin>(bob_address);
+
+        degengame::main::buy_share<U0,U1>(bob,share_subject,shares_to_buy,1000000000);
+
+        let user_balance_after = coin::balance<AptosCoin>(bob_address);
+
+        assert!(expected_buy_price == (user_balance_before - user_balance_after), 0x9);
+
+        let users_share_balance = degengame::main::get_share_balance(bob,share_subject);
+        
+        assert!(users_share_balance == shares_to_buy, 0x10);
+    } 
+
+    #[test(dev = @devaddress,bob = @0x2121, resource_account = @degengame,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
+    #[expected_failure(abort_code = 1)]
+    fun test_buy_share_with_worong_share_subject(dev:&signer,bob:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+        
+        pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
+        
+        setup_test_with_genesis_for_pancake(dev,resource_account,feedes);
+
+        let bob_address = signer::address_of(bob);
+
+        account::create_account_for_test(bob_address);
+
+        let aptos_to_mint = 100000000000000;
+
+        degengame::main::register_and_mint(dev,aptos_to_mint);
+
+        degengame::main::register_and_mint(bob,aptos_to_mint);
+
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 10000000000;
+
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
+
+        let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
+
+        let shares_to_buy = 1;
+
+        degengame::main::buy_share<U0,U1>(bob,share_subject,shares_to_buy,1000000000);
+
+        //here we trying to buy share with wrong share address
+        degengame::main::buy_share<U0,U1>(bob,@0x1010,shares_to_buy,1000000000);
+    }
+
+    #[test(dev = @devaddress,bob = @0x2121, resource_account = @degengame,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
+    #[expected_failure(abort_code = 9)]
+    fun test_buy_share_slippage_check(dev:&signer,bob:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+        
+        pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
+        
+        setup_test_with_genesis_for_pancake(dev,resource_account,feedes);
+
+        let bob_address = signer::address_of(bob);
+
+        account::create_account_for_test(bob_address);
+
+        let aptos_to_mint = 100000000000000;
+
+        degengame::main::register_and_mint(dev,aptos_to_mint);
+
+        degengame::main::register_and_mint(bob,aptos_to_mint);
+
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 10000000000;
+
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
+
+        let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
+
+        let shares_to_buy = 1000;
+
+        degengame::main::buy_share<U0,U1>(bob,share_subject,shares_to_buy,1000000000);
+
+    }
+
+    #[test(dev = @devaddress,bob = @0x2121, resource_account = @degengame,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
+    #[expected_failure(abort_code = 8)]
+    fun test_buy_share_after_threshold_reached(dev:&signer,bob:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+        
+        pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
+        
+        setup_test_with_genesis_for_pancake(dev,resource_account,feedes);
+
+        let bob_address = signer::address_of(bob);
+
+        account::create_account_for_test(bob_address);
+
+        let aptos_to_mint = 100000000000000;
+
+        degengame::main::register_and_mint(dev,aptos_to_mint);
+
+        degengame::main::register_and_mint(bob,aptos_to_mint);
+
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 200000000;
+
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
+
+        let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
+
+        let shares_to_buy1 = 30;
+        degengame::main::buy_share<U0,U1>(bob,share_subject,shares_to_buy1,1000000000);
+        
+        let shares_to_buy2 = 30;
+        degengame::main::buy_share<U0,U1>(bob,share_subject,shares_to_buy2,1000000000);
+
+        
+        let shares_to_buy3 = 10;
+        //threshold is already reached in above transaction
+        degengame::main::buy_share<U0,U1>(bob,share_subject,shares_to_buy2,1000000000);
+    }
+
+    #[test(dev = @devaddress,bob = @0x2121, resource_account = @degengame,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
+    #[expected_failure(abort_code = 3)]
+    fun test_buy_share_with_low_balance(dev:&signer,bob:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+        
+        pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
+        
+        setup_test_with_genesis_for_pancake(dev,resource_account,feedes);
+
+        let bob_address = signer::address_of(bob);
+
+        account::create_account_for_test(bob_address);
+
+        let aptos_to_mint = 100000000000000;
+
+        degengame::main::register_and_mint(dev,aptos_to_mint);
+
+        degengame::main::register_and_mint(bob,aptos_to_mint);
+
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 200000000;
+
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
+
+        let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
+
+        let shares_to_buy = 10000;
+        degengame::main::buy_share<U0,U1>(bob,share_subject,shares_to_buy,1000000000);
+        
+    }
+
+    #[test(dev = @devaddress,bob = @0x2121, resource_account = @degengame,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
+    fun test_buy_share_check_liquidity_in_pancakeswap(dev:&signer,bob:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+        
+        pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
+        
+        setup_test_with_genesis_for_pancake(dev,resource_account,feedes);
+
+        let bob_address = signer::address_of(bob);
+
+        account::create_account_for_test(bob_address);
+
+        let aptos_to_mint = 100000000000000;
+
+        degengame::main::register_and_mint(dev,aptos_to_mint);
+
+        degengame::main::register_and_mint(bob,aptos_to_mint);
+
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 200000000;
+
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
+
+        let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
+
+        let shares_to_buy1 = 30;
+        degengame::main::buy_share<U0,U1>(bob,share_subject,shares_to_buy1,1000000000);
+        
+        let shares_to_buy2 = 30;
+        //threshold reach here
+        degengame::main::buy_share<U0,U1>(bob,share_subject,shares_to_buy2,1000000000);
+
+        let coin_x_liquidity = ((1 + shares_to_buy1 + shares_to_buy2) * 10) * APTOS;
+
+        let coin_y_liquidity = (degengame::main::get_price(1,(shares_to_buy1 + shares_to_buy2)));
+
+        let (balance_y, balance_x) = pancake::swap::token_balances<AptosCoin,DegenGameCoin<U0,U1>>();
+
+        let share_subject_account_lp_balance = coin::balance<LPToken<AptosCoin,DegenGameCoin<U0,U1>>>(share_subject);
+       
+        let share_subject_account_suppose_lp_balance = pancake::math::sqrt(((coin_x_liquidity as u128) * (coin_y_liquidity as u128))) - 1000;
+   
+        assert!(balance_x == coin_x_liquidity, 0x11);
+        assert!(balance_y == coin_y_liquidity, 0x12);
+        assert!(share_subject_account_lp_balance == (share_subject_account_suppose_lp_balance as u64), 0x13);
+    }
+    //End buy share test cases
+
+
+    //Start sell share test caes
+    //End sell share test caes
+
+
+    //Start claim token test caes
+    //End claim token test caes
+
+
+
+
 
 
 
