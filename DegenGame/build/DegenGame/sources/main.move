@@ -5,7 +5,7 @@ module degengame::main{
     use aptos_framework::resource_account;
     use aptos_framework::signer;
     use aptos_framework::coin::{Self,BurnCapability, MintCapability,FreezeCapability};
-    use aptos_framework::aptos_coin::{AptosCoin};
+    use aptos_framework::aptos_coin::AptosCoin;
     use aptos_framework::string::{Self};
     use aptos_framework::event::{Self};
     use aptos_framework::string_utils::to_string;
@@ -369,8 +369,6 @@ module degengame::main{
     public entry fun buy_share<UID1,UID2>(sender:&signer,share_subject:address,amount:u64,max_in:u64)acquires DataStorage,ShareMetaData,ShareTokenCap{
 
         is_share_exist(share_subject);
-
-        let share_meta_data = borrow_global<ShareMetaData>(share_subject);
         
         let price = buy_share_internal<UID1,UID2>(sender,share_subject,amount);
 
@@ -563,9 +561,9 @@ module degengame::main{
         let share_signer = account::create_signer_with_capability(&share_meta_data.signer_cap);
 
         let share_resource_balance = coin::balance<AptosCoin>(share_subject);
-
+        
         assert!(share_resource_balance >= price, ERROR_INSUFFICIENT_PAYMENT);
-
+        
         coin::transfer<AptosCoin>(&share_signer,sender,price);
 
     }
@@ -687,7 +685,7 @@ module degengame::main{
         assert!(exists<ShareMetaData>(share_subject), ERROR_SHARES_SUBJECT_NOT_EXIST);
     }
 
-    fun register_aptos(sender:&signer){
+    public fun register_aptos(sender:&signer){
 
         let sender_address = signer::address_of(sender);
 
@@ -697,7 +695,7 @@ module degengame::main{
         };
     }
 
-    fun register_coin<UID1,UID2>(sender:&signer){
+    public fun register_coin<UID1,UID2>(sender:&signer){
 
         let sender_address = signer::address_of(sender);
 
@@ -721,8 +719,6 @@ module degengame::main{
     #[test_only]
     use aptos_framework::managed_coin;
 
-    #[test_only]
-    use aptos_framework::aptos_coin;
     
     #[test_only]
     struct TestCap has key{
