@@ -1142,6 +1142,50 @@ module degengame::test{
         degengame::main::sell_shares(bob,share_subject,shares_to_sell,10000000000);
 
     }
+
+    #[test(dev = @devaddress,bob = @0x2121, resource_account = @degengame,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
+    #[expected_failure(abort_code = 3,location = degengame::main)]
+    fun test_sell_share_with_low_aptos_balance(dev:&signer,bob:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+        
+        pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
+        
+        setup_test_with_genesis_for_pancake(dev,resource_account,feedes);
+
+        let bob_address = signer::address_of(bob);
+
+        account::create_account_for_test(bob_address);
+
+        let aptos_to_mint = 100000000000000;
+
+        degengame::main::register_and_mint(dev,aptos_to_mint);
+
+        degengame::main::register_and_mint(bob,6874);
+
+        let protocol_fee = 5000000;
+        let subject_fee = 5000000;
+
+        degengame::main::set_protocol_fee_percent(dev,protocol_fee);
+
+        degengame::main::set_subject_fee_percent(dev,subject_fee);
+
+        let token_name = string::utf8(b"DegenCoin");
+        let token_symbol = string::utf8(b"DGC");
+        let threshold = 200000000;
+
+        degengame::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
+
+        let seeds = get_seeds(token_name);
+
+        let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
+
+        let shares_to_buy = 1;
+        degengame::main::buy_share<U0,U1>(bob,share_subject,shares_to_buy,1000000000);
+
+
+        let shares_to_sell = 1;
+        degengame::main::sell_shares(bob,share_subject,shares_to_sell,0);
+
+    }
     //End sell share test caes
 
 

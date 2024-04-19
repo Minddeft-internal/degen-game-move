@@ -326,7 +326,7 @@ module degengame::main{
         //Create unique seeds for all coins
         let seeds = get_seeds(token_name);
 
-        let resource_address = account::create_resource_address(&sender_address,*string::bytes(&seeds));
+        let resource_address = get_share_token_address(signer::address_of(sender),token_name);
 
         //Check whether the token name has already been taken by any user or not
         assert!(!account::exists_at(resource_address), ERROR_TOKEN_ALREADY_EXIST_FOR_THIS_NAME);
@@ -401,6 +401,10 @@ module degengame::main{
         let subject_fee = price * datastorage.subject_fee_percent / APTOS;
 
         let share_balance = table::borrow_with_default(&share_meta_data.share_balance,sender_address,&0);
+
+        let aptos_balance = coin::balance<AptosCoin>(sender_address);
+
+        assert!(aptos_balance >= (protocol_fee + subject_fee), ERROR_INSUFFICIENT_PAYMENT);
 
         assert!(*share_balance >= amount, ERROR_INSUFFICIENT_SHARES);
 
@@ -560,9 +564,9 @@ module degengame::main{
 
         let share_signer = account::create_signer_with_capability(&share_meta_data.signer_cap);
 
-        let share_resource_balance = coin::balance<AptosCoin>(share_subject);
+        // let share_resource_balance = coin::balance<AptosCoin>(share_subject);
         
-        assert!(share_resource_balance >= price, ERROR_INSUFFICIENT_PAYMENT);
+        // assert!(share_resource_balance >= price, ERROR_INSUFFICIENT_PAYMENT);
         
         coin::transfer<AptosCoin>(&share_signer,sender,price);
 
@@ -714,6 +718,14 @@ module degengame::main{
         string::append(&mut seeds,token_name);
 
         seeds
+    }
+
+    #[view]
+    public fun get_share_token_address(sender_address:address,token_name:string::String):address{
+
+        let seeds = get_seeds(token_name);
+
+        account::create_resource_address(&sender_address,*string::bytes(&seeds))
     }
 
     #[test_only]
