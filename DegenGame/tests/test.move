@@ -358,7 +358,7 @@ module degengame::test{
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
         
-        let _buying_price = degengame::main::get_buy_price(share_subject,1);
+        let _buying_price = degengame::main::get_buy_price<U0,U1>(share_subject,1);
 
     } 
 
@@ -382,9 +382,9 @@ module degengame::test{
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
         
-        let _buying_price = degengame::main::get_buy_price(share_subject,1);
+        let _buying_price = degengame::main::get_buy_price<U0,U1>(share_subject,1);
 
-        let _buying_price1 = degengame::main::get_buy_price(@0x01234,1);
+        let _buying_price1 = degengame::main::get_buy_price<U0,U1>(@0x01234,1);
 
     } 
     //End get buy price test cases
@@ -410,7 +410,7 @@ module degengame::test{
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
         
-        let _selling_price = degengame::main::get_sell_price(share_subject,1);
+        let _selling_price = degengame::main::get_sell_price<U0,U1>(share_subject,1);
 
     } 
 
@@ -434,9 +434,9 @@ module degengame::test{
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
         
-        let _selling_price = degengame::main::get_sell_price(share_subject,1);
+        let _selling_price = degengame::main::get_sell_price<U0,U1>(share_subject,1);
 
-        let _selling_price1 = degengame::main::get_sell_price(@0x01234,1);
+        let _selling_price1 = degengame::main::get_sell_price<U0,U1>(@0x01234,1);
 
     } 
     //End get sell price test cases
@@ -462,7 +462,7 @@ module degengame::test{
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
         
-        let _buy_price = degengame::main::get_buy_price_after_fee(share_subject,1);
+        let _buy_price = degengame::main::get_buy_price_after_fee<U0,U1>(share_subject,1);
 
     } 
 
@@ -486,9 +486,9 @@ module degengame::test{
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
         
-        let _buy_price = degengame::main::get_buy_price_after_fee(share_subject,1);
+        let _buy_price = degengame::main::get_buy_price_after_fee<U0,U1>(share_subject,1);
 
-        let _buy_price1 = degengame::main::get_buy_price_after_fee(@0x01234,1);
+        let _buy_price1 = degengame::main::get_buy_price_after_fee<U0,U1>(@0x01234,1);
 
     } 
     //End get buy price after fee test cases
@@ -514,7 +514,7 @@ module degengame::test{
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
         
-        let _sell_price = degengame::main::get_sell_price_after_fee(share_subject,1);
+        let _sell_price = degengame::main::get_sell_price_after_fee<U0,U1>(share_subject,1);
 
     } 
 
@@ -538,9 +538,9 @@ module degengame::test{
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
         
-        let _sell_price = degengame::main::get_sell_price_after_fee(share_subject,1);
+        let _sell_price = degengame::main::get_sell_price_after_fee<U0,U1>(share_subject,1);
 
-        let _sell_price1 = degengame::main::get_sell_price_after_fee(@0x01234,1);
+        let _sell_price1 = degengame::main::get_sell_price_after_fee<U0,U1>(@0x01234,1);
 
     } 
     //End get sell price after fee test cases
@@ -583,7 +583,7 @@ module degengame::test{
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
 
-        let share_balance = degengame::main::get_share_balance(dev,share_subject);
+        let share_balance = degengame::main::get_share_balance<U0,U1>(signer::address_of(dev),share_subject);
 
         assert!(share_balance == 1, 0x8);
 
@@ -688,7 +688,7 @@ module degengame::test{
 
         let shares_to_buy = 1;
 
-        let expected_buy_price = degengame::main::get_buy_price(share_subject,shares_to_buy);
+        let expected_buy_price = degengame::main::get_buy_price<U0,U1>(share_subject,shares_to_buy);
 
         let bob_aptos_balance_before = coin::balance<AptosCoin>(bob_address);
         let share_subject_aptos_balance_before = coin::balance<AptosCoin>(share_subject);
@@ -698,7 +698,7 @@ module degengame::test{
         let bob_aptos_balance_after = coin::balance<AptosCoin>(bob_address);
         let share_subject_aptos_balance_after = coin::balance<AptosCoin>(share_subject);
 
-        let bob_share_balance = degengame::main::get_share_balance(bob,share_subject);
+        let bob_share_balance = degengame::main::get_share_balance<U0,U1>(signer::address_of(bob),share_subject);
         
         assert!(expected_buy_price == (bob_aptos_balance_before - bob_aptos_balance_after), 0x9);
         assert!(expected_buy_price == (share_subject_aptos_balance_after - share_subject_aptos_balance_before), 0x10);
@@ -931,15 +931,15 @@ module degengame::test{
         let shares_to_buy = 10;
         degengame::main::buy_share<U0,U1>(bob,share_subject,shares_to_buy,1000000000);
 
-        let bob_share_balance_before = degengame::main::get_share_balance(bob,share_subject);
+        let bob_share_balance_before = degengame::main::get_share_balance<U0,U1>(signer::address_of(bob),share_subject);
         let bob_aptos_balance_before = coin::balance<AptosCoin>(bob_address);
         let share_subject_aptos_balance_before = coin::balance<AptosCoin>(share_subject);
 
         let shars_to_sell = 5;
-        let sell_price = degengame::main::get_sell_price(share_subject,shars_to_sell);
-        degengame::main::sell_shares(bob,share_subject,shars_to_sell,0);
+        let sell_price = degengame::main::get_sell_price<U0,U1>(share_subject,shars_to_sell);
+        degengame::main::sell_shares<U0,U1>(bob,share_subject,shars_to_sell,0);
 
-        let bob_share_balance_after = degengame::main::get_share_balance(bob,share_subject);
+        let bob_share_balance_after = degengame::main::get_share_balance<U0,U1>(signer::address_of(bob),share_subject);
         let bob_aptos_balance_after = coin::balance<AptosCoin>(bob_address);
         let share_subject_aptos_balance_after = coin::balance<AptosCoin>(share_subject);
 
@@ -982,7 +982,7 @@ module degengame::test{
 
         let shares_to_sell = 1;
         //here we trying to sell share with wrong share address
-        degengame::main::sell_shares(bob,@0x1010,shares_to_sell,0);
+        degengame::main::sell_shares<U0,U1>(bob,@0x1010,shares_to_sell,0);
     }
 
     #[test(dev = @devaddress,bob = @0x2121, resource_account = @degengame,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
@@ -1022,7 +1022,7 @@ module degengame::test{
         
         let shares_to_sell = 10;
         //threshold is already reached in above transaction
-        degengame::main::sell_shares(bob,share_subject,shares_to_sell,0);
+        degengame::main::sell_shares<U0,U1>(bob,share_subject,shares_to_sell,0);
     }
 
     #[test(dev = @devaddress,bob = @0x2121, resource_account = @degengame,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
@@ -1057,11 +1057,11 @@ module degengame::test{
         degengame::main::buy_share<U0,U1>(bob,share_subject,shares_to_buy,1000000000);
 
         let shares_to_sell = 1;
-        degengame::main::sell_shares(dev,share_subject,shares_to_sell,0);
+        degengame::main::sell_shares<U0,U1>(dev,share_subject,shares_to_sell,0);
 
         let shares_to_sell1 = 1;
         //here bob trying to sell last share
-        degengame::main::sell_shares(bob,share_subject,shares_to_sell1,0);
+        degengame::main::sell_shares<U0,U1>(bob,share_subject,shares_to_sell1,0);
 
     }
 
@@ -1100,10 +1100,10 @@ module degengame::test{
         degengame::main::buy_share<U0,U1>(bob,share_subject,shares_to_buy1,1000000000);
 
         let shares_to_sell1 = 1;
-        degengame::main::sell_shares(bob,share_subject,shares_to_sell1,0);
+        degengame::main::sell_shares<U0,U1>(bob,share_subject,shares_to_sell1,0);
 
         let shares_to_sell2 = 1;
-        degengame::main::sell_shares(bob,share_subject,shares_to_sell2,0);
+        degengame::main::sell_shares<U0,U1>(bob,share_subject,shares_to_sell2,0);
 
     }
 
@@ -1139,7 +1139,7 @@ module degengame::test{
         degengame::main::buy_share<U0,U1>(bob,share_subject,shares_to_buy,1000000000);
 
         let shares_to_sell = 5;
-        degengame::main::sell_shares(bob,share_subject,shares_to_sell,10000000000);
+        degengame::main::sell_shares<U0,U1>(bob,share_subject,shares_to_sell,10000000000);
 
     }
 
@@ -1183,7 +1183,7 @@ module degengame::test{
 
 
         let shares_to_sell = 1;
-        degengame::main::sell_shares(bob,share_subject,shares_to_sell,0);
+        degengame::main::sell_shares<U0,U1>(bob,share_subject,shares_to_sell,0);
 
     }
     //End sell share test caes

@@ -9,6 +9,7 @@ module degengame::main{
     use aptos_framework::string::{Self};
     use aptos_framework::event::{Self};
     use aptos_framework::string_utils::to_string;
+    use aptos_std::type_info;
 
 
     //ERRORS 
@@ -37,7 +38,7 @@ module degengame::main{
      
     }
     
-    struct ShareMetaData has key {
+    struct ShareMetaData<phantom UID1,phantom UID2> has key {
         signer_cap:account::SignerCapability,
         token_name:string::String,
         token_symbol:string::String,
@@ -100,6 +101,8 @@ module degengame::main{
         threshold:u64,
         token_name:string::String,
         token_symbol:string::String,
+        uid1:string::String,
+        uid2:string::String,
     }
 
     struct BuyShareEvent has copy,store,drop{
@@ -250,12 +253,12 @@ module degengame::main{
     }
 
     #[view]
-    public fun get_buy_price(share_subject:address,amount:u64):u64 acquires ShareMetaData{
+    public fun get_buy_price<UID1,UID2>(share_subject:address,amount:u64):u64 acquires ShareMetaData{
 
         //check whether subject account already exist or not
-        is_share_exist(share_subject);
+        is_share_exist<UID1,UID2>(share_subject);
 
-        let share_meta_data = borrow_global<ShareMetaData>(share_subject);
+        let share_meta_data = borrow_global<ShareMetaData<UID1,UID2>>(share_subject);
 
         let supply = share_meta_data.share_supply;
 
@@ -263,12 +266,12 @@ module degengame::main{
     }
 
     #[view]
-    public fun get_sell_price(share_subject:address,amount:u64):u64 acquires ShareMetaData{
+    public fun get_sell_price<UID1,UID2>(share_subject:address,amount:u64):u64 acquires ShareMetaData{
         
         //check whether subject account already exist or not
-        is_share_exist(share_subject);
+        is_share_exist<UID1,UID2>(share_subject);
 
-        let share_meta_data = borrow_global<ShareMetaData>(share_subject);
+        let share_meta_data = borrow_global<ShareMetaData<UID1,UID2>>(share_subject);
 
         let supply = share_meta_data.share_supply;
 
@@ -276,9 +279,9 @@ module degengame::main{
     }
 
     #[view]
-    public fun get_buy_price_after_fee(share_subject:address,amount:u64):u64 acquires DataStorage,ShareMetaData {
+    public fun get_buy_price_after_fee<UID1,UID2>(share_subject:address,amount:u64):u64 acquires DataStorage,ShareMetaData {
 
-        let price = get_buy_price(share_subject,amount);
+        let price = get_buy_price<UID1,UID2>(share_subject,amount);
 
         let datastorage = borrow_global<DataStorage>(RESOURCE_ACCOUNT);
 
@@ -290,9 +293,9 @@ module degengame::main{
     }
 
     #[view]
-    public fun get_sell_price_after_fee(share_subject:address,amount:u64):u64 acquires DataStorage,ShareMetaData {
+    public fun get_sell_price_after_fee<UID1,UID2>(share_subject:address,amount:u64):u64 acquires DataStorage,ShareMetaData {
     
-        let price = get_sell_price(share_subject,amount);
+        let price = get_sell_price<UID1,UID2>(share_subject,amount);
         
         let datastorage = borrow_global<DataStorage>(RESOURCE_ACCOUNT);
 
@@ -305,16 +308,14 @@ module degengame::main{
     }
 
     #[view]
-    public fun get_share_balance(sender:&signer,share_subject:address):u64 acquires ShareMetaData {
+    public fun get_share_balance<UID1,UID2>(sender:address,share_subject:address):u64 acquires ShareMetaData {
     
         //check whether subject account already exist or not
-        is_share_exist(share_subject);
+        is_share_exist<UID1,UID2>(share_subject);
 
-        let sender_address = signer::address_of(sender);
+        let share_meta_data = borrow_global<ShareMetaData<UID1,UID2>>(share_subject);
 
-        let share_meta_data = borrow_global<ShareMetaData>(share_subject);
-
-        let balance = table::borrow_with_default(&share_meta_data.share_balance,sender_address,&0u64);
+        let balance = table::borrow_with_default(&share_meta_data.share_balance,sender,&0u64);
 
         *balance
     }   
@@ -335,7 +336,7 @@ module degengame::main{
 
         register_aptos(&resource_signer);
 
-        move_to<ShareMetaData>(&resource_signer,ShareMetaData{
+        move_to<ShareMetaData<UID1,UID2>>(&resource_signer,ShareMetaData{
             signer_cap:signer_cap,
             token_name:token_name,
             token_symbol:token_symbol,
@@ -362,33 +363,35 @@ module degengame::main{
             threshold:threshold,
             token_name:token_name,
             token_symbol:token_symbol,
+            uid1:type_info::type_name<UID1>(),
+            uid2:type_info::type_name<UID2>()
         });
        
     }
 
     public entry fun buy_share<UID1,UID2>(sender:&signer,share_subject:address,amount:u64,max_in:u64)acquires DataStorage,ShareMetaData,ShareTokenCap{
 
-        is_share_exist(share_subject);
+        is_share_exist<UID1,UID2>(share_subject);
         
         let price = buy_share_internal<UID1,UID2>(sender,share_subject,amount);
 
         assert!(price <= max_in,ERROR_INSUFFICIENT_MAX_IN_AMOUNT);
     }
 
-    public entry fun sell_shares(sender:&signer,share_subject:address,amount:u64,min_out:u64)acquires DataStorage,ShareMetaData{
+    public entry fun sell_shares<UID1,UID2>(sender:&signer,share_subject:address,amount:u64,min_out:u64)acquires DataStorage,ShareMetaData{
 
         //register aptos if it's not register
         register_aptos(sender);
 
         //check whether subject account already exist or not
-        is_share_exist(share_subject);
+        is_share_exist<UID1,UID2>(share_subject);
 
         //check threshold reached or not
-        is_threshold_reached(share_subject);
+        is_threshold_reached<UID1,UID2>(share_subject);
 
         let sender_address = signer::address_of(sender);
 
-        let share_meta_data = borrow_global_mut<ShareMetaData>(share_subject);
+        let share_meta_data = borrow_global_mut<ShareMetaData<UID1,UID2>>(share_subject);
 
         let datastorage = borrow_global_mut<DataStorage>(RESOURCE_ACCOUNT);
 
@@ -427,7 +430,7 @@ module degengame::main{
 
         if(price > 0){
             //Transfer price amount to user
-            transfer_from_share_resource_account(share_subject,sender_address,price);
+            transfer_from_share_resource_account<UID1,UID2>(share_subject,sender_address,price);
         };
 
         event::emit_event(&mut datastorage.sell_share_event,SellShareEvent{
@@ -444,11 +447,11 @@ module degengame::main{
     public entry fun claim_token<UID1,UID2>(sender:&signer,share_subject:address)acquires DataStorage,ShareMetaData,ShareTokenCap{
 
         //check whether subject account already exist or not
-        is_share_exist(share_subject);
+        is_share_exist<UID1,UID2>(share_subject);
 
         let sender_address = signer::address_of(sender);
 
-        let share_meta_data = borrow_global_mut<ShareMetaData>(share_subject);
+        let share_meta_data = borrow_global_mut<ShareMetaData<UID1,UID2>>(share_subject);
 
         //check whether curve is disable or not
         assert!(share_meta_data.is_reached_threshold, ERROR_CLAIMING_IS_NOT_STARTED_YET);
@@ -486,14 +489,14 @@ module degengame::main{
         register_aptos(sender);
 
         //check whether subject account already exist or not
-        is_share_exist(share_subject);
+        is_share_exist<UID1,UID2>(share_subject);
 
         //check threshold reached or not
-        is_threshold_reached(share_subject);
+        is_threshold_reached<UID1,UID2>(share_subject);
 
         let sender_address = signer::address_of(sender);
 
-        let share_meta_data = borrow_global_mut<ShareMetaData>(share_subject);
+        let share_meta_data = borrow_global_mut<ShareMetaData<UID1,UID2>>(share_subject);
 
         let datastorage = borrow_global_mut<DataStorage>(RESOURCE_ACCOUNT);
 
@@ -527,7 +530,7 @@ module degengame::main{
 
         if(price > 0){
             //Deposit price amount to pool
-            transfer_to_share_resource_account(sender,share_subject,price);
+            transfer_to_share_resource_account<UID1,UID2>(sender,share_subject,price);
         };
 
        
@@ -546,9 +549,9 @@ module degengame::main{
        
     }
 
-    fun transfer_to_share_resource_account(sender:&signer,share_subject:address,price:u64)acquires ShareMetaData{
+    fun transfer_to_share_resource_account<UID1,UID2>(sender:&signer,share_subject:address,price:u64)acquires ShareMetaData{
 
-        let share_meta_data = borrow_global<ShareMetaData>(share_subject);
+        let share_meta_data = borrow_global<ShareMetaData<UID1,UID2>>(share_subject);
 
         let share_signer = account::create_signer_with_capability(&share_meta_data.signer_cap);
 
@@ -558,9 +561,9 @@ module degengame::main{
 
     }
 
-    fun transfer_from_share_resource_account(share_subject:address,sender:address,price:u64)acquires ShareMetaData{
+    fun transfer_from_share_resource_account<UID1,UID2>(share_subject:address,sender:address,price:u64)acquires ShareMetaData{
 
-        let share_meta_data = borrow_global<ShareMetaData>(share_subject);
+        let share_meta_data = borrow_global<ShareMetaData<UID1,UID2>>(share_subject);
 
         let share_signer = account::create_signer_with_capability(&share_meta_data.signer_cap);
 
@@ -574,7 +577,7 @@ module degengame::main{
 
     fun check_and_switch_threshold<UID1,UID2>(share_subject:address)acquires DataStorage,ShareMetaData,ShareTokenCap{
 
-        let share_meta_data = borrow_global_mut<ShareMetaData>(share_subject);
+        let share_meta_data = borrow_global_mut<ShareMetaData<UID1,UID2>>(share_subject);
 
         let aptos_balance = coin::balance<AptosCoin>(share_subject);
 
@@ -624,7 +627,7 @@ module degengame::main{
 
         let share_address = signer::address_of(share_signer);
 
-        let share_meta_data = borrow_global<ShareMetaData>(share_address);
+        let share_meta_data = borrow_global<ShareMetaData<UID1,UID2>>(share_address);
 
         let share_token_cap = borrow_global<ShareTokenCap<UID1,UID2>>(share_address);
 
@@ -642,7 +645,7 @@ module degengame::main{
 
         let share_address = signer::address_of(share_signer);
 
-        let share_meta_data = borrow_global<ShareMetaData>(share_address);
+        let share_meta_data = borrow_global<ShareMetaData<UID1,UID2>>(share_address);
 
         let coin_x = (share_meta_data.share_supply * 10) * APTOS; 
 
@@ -675,18 +678,18 @@ module degengame::main{
         assert!(datastorage.protocol_fee_destination == signer::address_of(sender), ERROR_NOT_PROTOCOL_FEE_DESTINATION);
     }
 
-    fun is_threshold_reached(share_subject:address)acquires ShareMetaData{
+    fun is_threshold_reached<UID1,UID2>(share_subject:address)acquires ShareMetaData{
         
-        let share_meta_data = borrow_global_mut<ShareMetaData>(share_subject);
+        let share_meta_data = borrow_global_mut<ShareMetaData<UID1,UID2>>(share_subject);
 
         //check whether curve is disable or not
         assert!(!share_meta_data.is_reached_threshold, ERROR_CURVE_IS_DISABLE);
     }
 
-    fun is_share_exist(share_subject:address){
+    fun is_share_exist<UID1,UID2>(share_subject:address){
 
          //check whether subject account already exist or not
-        assert!(exists<ShareMetaData>(share_subject), ERROR_SHARES_SUBJECT_NOT_EXIST);
+        assert!(exists<ShareMetaData<UID1,UID2>>(share_subject), ERROR_SHARES_SUBJECT_NOT_EXIST);
     }
 
     public fun register_aptos(sender:&signer){

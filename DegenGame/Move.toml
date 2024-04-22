@@ -4,13 +4,13 @@ version = "1.0.0"
 authors = []
 
 [addresses]
-# degengame = "0x89ddfcc07bdca78698ab4a72ccd5687c0b6ade0eb8dd388609fd4802789aa145"
-# devaddress = "0x5e68e6d7f96a19416175cbfc2dfa571d1ca0c0f3bdb66b233f8581c24abb6485"
-# testcoin = "0x16"
-
-degengame = "0xe8f6ae923fc761ae5543e72540d9266d6150412917883b05ace80777a9712ebc"
+degengame = "0x1732ed5a394263f5d53fdc20204cfb4cbd55e36a1d85395f928deb49c2fd7693"
 devaddress = "0x5e68e6d7f96a19416175cbfc2dfa571d1ca0c0f3bdb66b233f8581c24abb6485"
 testcoin = "0x16"
+
+# degengame = "0xe8f6ae923fc761ae5543e72540d9266d6150412917883b05ace80777a9712ebc"
+# devaddress = "0x5e68e6d7f96a19416175cbfc2dfa571d1ca0c0f3bdb66b233f8581c24abb6485"
+# testcoin = "0x16"
 
 [dev-addresses]
 
