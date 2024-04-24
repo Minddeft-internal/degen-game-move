@@ -4,7 +4,7 @@ version = "1.0.0"
 authors = []
 
 [addresses]
-degengame = "0x1732ed5a394263f5d53fdc20204cfb4cbd55e36a1d85395f928deb49c2fd7693"
+degengame = "0xd8f33d1e1898e3655a187e942290668675d51fdf448e57d179f217b1b26ad010"
 devaddress = "0x5e68e6d7f96a19416175cbfc2dfa571d1ca0c0f3bdb66b233f8581c24abb6485"
 testcoin = "0x16"
 

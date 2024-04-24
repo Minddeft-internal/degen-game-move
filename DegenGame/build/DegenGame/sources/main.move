@@ -111,6 +111,7 @@ module degengame::main{
         price:u64,
         protocol_fee:u64,
         subject_fee:u64,
+        supply:u64
     } 
 
     struct SellShareEvent has copy,store,drop{
@@ -119,6 +120,7 @@ module degengame::main{
         price:u64,
         protocol_fee:u64,
         subject_fee:u64,
+        supply:u64
     } 
 
     struct AddLiquidityToPancakeEvent has copy,store,drop{
@@ -417,6 +419,8 @@ module degengame::main{
 
         share_meta_data.share_supply = share_meta_data.share_supply - amount;
 
+        let current_share_supply = share_meta_data.share_supply;
+
         if(protocol_fee > 0){
             //Deposit protocol fees amount to pool
             let protocol_fee_amount = coin::withdraw<AptosCoin>(sender,protocol_fee);
@@ -439,6 +443,7 @@ module degengame::main{
             price:price,
             protocol_fee:protocol_fee,
             subject_fee:subject_fee,
+            supply:current_share_supply
         });
         
         assert!(price >= min_out, ERROR_INSUFFICIENT_MIN_OUT_AMOUNT);
@@ -517,6 +522,8 @@ module degengame::main{
 
         share_meta_data.share_supply = share_meta_data.share_supply + amount;
 
+        let current_share_supply = share_meta_data.share_supply;
+
         if(protocol_fee > 0){
             //Deposit protocol fees amount to pool
             let protocol_fee_amount = coin::withdraw<AptosCoin>(sender,protocol_fee);
@@ -533,6 +540,7 @@ module degengame::main{
             transfer_to_share_resource_account<UID1,UID2>(sender,share_subject,price);
         };
 
+        
        
         event::emit_event(&mut datastorage.buy_share_event,BuyShareEvent{
             share_address:share_subject,
@@ -540,6 +548,7 @@ module degengame::main{
             price:price,
             protocol_fee:protocol_fee,
             subject_fee:subject_fee,
+            supply:current_share_supply
         });
 
         //check will threshold reached or not

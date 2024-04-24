@@ -7,7 +7,7 @@ module degengame::test{
     use aptos_framework::account::{Self,create_signer_for_test};
     use degengame::main;
     use aptos_framework::string::{Self};  
-    use degengame::ids::{U0,U1,U2};
+    use degengame::ids::{U0,U1,U2,U3,U4,U5};
     use aptos_framework::coin;
     use pancake::swap::LPToken;
     use aptos_framework::aptos_coin::{AptosCoin};
@@ -652,8 +652,26 @@ module degengame::test{
         let second_token_symbol = string::utf8(b"MDC");
         let second_token_threshold = 10000000000;
 
-        //here we createing share with same name
         degengame::main::create_share<U0,U2>(dev,second_token_name,second_token_symbol,second_token_threshold);
+
+        let third_token_name = string::utf8(b"MemeCoin");
+        let third_token_symbol = string::utf8(b"MMC");
+        let third_token_threshold = 10000000000;
+
+        degengame::main::create_share<U0,U3>(dev,third_token_name,third_token_symbol,third_token_threshold);
+
+
+        let fourth_token_name = string::utf8(b"TestCoin");
+        let fourth_token_symbol = string::utf8(b"TC");
+        let fourth_token_threshold = 10000000000;
+
+        degengame::main::create_share<U0,U4>(dev,fourth_token_name,fourth_token_symbol,fourth_token_threshold);
+
+        let fifth_token_name = string::utf8(b"ApeCoin");
+        let fifth_token_symbol = string::utf8(b"APC");
+        let fifth_token_threshold = 10000000000;
+
+        degengame::main::create_share<U0,U5>(dev,fifth_token_name,fifth_token_symbol,fifth_token_threshold);
     } 
     //End create share test cases
 
