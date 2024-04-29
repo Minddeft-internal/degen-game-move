@@ -1,4 +1,4 @@
-module degengame::main{
+module degenfun::main{
 
     use aptos_framework::account;
     use aptos_framework::table;
@@ -30,11 +30,11 @@ module degengame::main{
     const ERROR_CLAIMING_IS_NOT_STARTED_YET:u64 = 14;
 
     const DEV:address = @devaddress;
-    const RESOURCE_ACCOUNT:address = @degengame;
+    const RESOURCE_ACCOUNT:address = @degenfun;
 
     const APTOS:u64 = 100000000;
 
-    struct DegenGameCoin<phantom UID1,phantom UID2> has key{
+    struct DegenFunCoin<phantom UID1,phantom UID2> has key{
      
     }
     
@@ -52,9 +52,9 @@ module degengame::main{
     }
 
     struct ShareTokenCap<phantom UID1,phantom UID2> has key{
-        mint_capability:MintCapability<DegenGameCoin<UID1,UID2>>,
-        burn_capability:BurnCapability<DegenGameCoin<UID1,UID2>>,
-        freeze_capability:FreezeCapability<DegenGameCoin<UID1,UID2>>,
+        mint_capability:MintCapability<DegenFunCoin<UID1,UID2>>,
+        burn_capability:BurnCapability<DegenFunCoin<UID1,UID2>>,
+        freeze_capability:FreezeCapability<DegenFunCoin<UID1,UID2>>,
     }
 
     struct DataStorage has key,store {
@@ -469,12 +469,12 @@ module degengame::main{
 
         let coin_to_mint = (*share_balance * 10) * APTOS;
 
-        let minted_coin = coin::mint<DegenGameCoin<UID1,UID2>>(coin_to_mint,&share_token_cap.mint_capability);
+        let minted_coin = coin::mint<DegenFunCoin<UID1,UID2>>(coin_to_mint,&share_token_cap.mint_capability);
 
         //register coin if not registered
         register_coin<UID1,UID2>(sender);
         
-        coin::deposit<DegenGameCoin<UID1,UID2>>(sender_address,minted_coin);
+        coin::deposit<DegenFunCoin<UID1,UID2>>(sender_address,minted_coin);
 
         *share_balance = 0;
 
@@ -613,7 +613,7 @@ module degengame::main{
 
         let resource_signer = account::create_signer_with_capability(&datastorage.signer_cap);
         
-        let (burn_cap, freeze_cap, mint_cap) = coin::initialize<DegenGameCoin<UID1,UID2>>(
+        let (burn_cap, freeze_cap, mint_cap) = coin::initialize<DegenFunCoin<UID1,UID2>>(
             &resource_signer,
             token_name,
             token_symbol,
@@ -645,9 +645,9 @@ module degengame::main{
 
         register_coin<UID1,UID2>(share_signer);
 
-        let minted_tokens = coin::mint<DegenGameCoin<UID1,UID2>>(coins_to_mint,&share_token_cap.mint_capability);
+        let minted_tokens = coin::mint<DegenFunCoin<UID1,UID2>>(coins_to_mint,&share_token_cap.mint_capability);
 
-        coin::deposit<DegenGameCoin<UID1,UID2>>(share_address,minted_tokens);
+        coin::deposit<DegenFunCoin<UID1,UID2>>(share_address,minted_tokens);
     }
 
     fun add_liquidity_to_pancake_swap<UID1,UID2>(share_signer:&signer)acquires DataStorage,ShareMetaData{
@@ -661,7 +661,7 @@ module degengame::main{
         let coin_y = coin::balance<AptosCoin>(share_address);
 
         //Add liquidity to pancake swap
-        pancake::router::add_liquidity<DegenGameCoin<UID1,UID2>,AptosCoin>(share_signer,coin_x,coin_y,0,0);
+        pancake::router::add_liquidity<DegenFunCoin<UID1,UID2>,AptosCoin>(share_signer,coin_x,coin_y,0,0);
 
         let datastorage = borrow_global_mut<DataStorage>(RESOURCE_ACCOUNT);
 
@@ -716,8 +716,8 @@ module degengame::main{
         let sender_address = signer::address_of(sender);
 
         // Auto register aptos
-        if (!coin::is_account_registered<DegenGameCoin<UID1,UID2>>(sender_address)) {
-            coin::register<DegenGameCoin<UID1,UID2>>(sender);
+        if (!coin::is_account_registered<DegenFunCoin<UID1,UID2>>(sender_address)) {
+            coin::register<DegenFunCoin<UID1,UID2>>(sender);
         };
     }
 
@@ -725,7 +725,7 @@ module degengame::main{
 
         let seeds = string::utf8(b"");
 
-        string::append(&mut seeds,to_string(&@degengame));
+        string::append(&mut seeds,to_string(&@degenfun));
 
         string::append(&mut seeds,token_name);
 
@@ -794,7 +794,7 @@ module degengame::main{
 
     #[test_only]
     public fun degencoin_balance<UID1,UID2>(to:address):u64 {
-        coin::balance<DegenGameCoin<UID1,UID2>>(to)
+        coin::balance<DegenFunCoin<UID1,UID2>>(to)
     }
 
     #[test_only]

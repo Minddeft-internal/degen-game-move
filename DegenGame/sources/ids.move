@@ -1,4 +1,4 @@
-module degengame::ids {
+module degenfun::ids {
 
     struct U0 {}
 

@@ -1,14 +1,14 @@
 [package]
-name = "DegenGame"
+name = "DegenFun"
 version = "1.0.0"
 authors = []
 
 [addresses]
-degengame = "0xd8f33d1e1898e3655a187e942290668675d51fdf448e57d179f217b1b26ad010"
+degenfun = "0x54c38b1d240d5809bf4bfa00cb2fc1bb7c2fd5f6dd0b9151de7964b310dc8351"
 devaddress = "0x5e68e6d7f96a19416175cbfc2dfa571d1ca0c0f3bdb66b233f8581c24abb6485"
 testcoin = "0x16"
 
-# degengame = "0xe8f6ae923fc761ae5543e72540d9266d6150412917883b05ace80777a9712ebc"
+# degenfun = "0xe8f6ae923fc761ae5543e72540d9266d6150412917883b05ace80777a9712ebc"
 # devaddress = "0x5e68e6d7f96a19416175cbfc2dfa571d1ca0c0f3bdb66b233f8581c24abb6485"
 # testcoin = "0x16"
 
