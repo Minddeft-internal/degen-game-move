@@ -188,13 +188,15 @@ module degenfun::test{
 
     //Start collect protocol fees test cases
     #[test(dev = @devaddress, resource_account = @degenfun,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
-    fun test_collect_protocol_fees(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+    fun test_check_protocol_fees_in_fee_destination_account(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
         
         pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
         
         setup_test_with_genesis_for_pancake(dev,resource_account,feedes);
 
         let fee_destination_address = signer::address_of(feedes);
+
+        degenfun::main::register_aptos(feedes);
 
         let protocol_fee = 5000000;
 
@@ -223,35 +225,34 @@ module degenfun::test{
         //Calculate expected collected protocol fees
         let expected_collected_protocol_fees = price * datastorage_protocol_fee / APTOS;
 
-        //Checking fees in data storage
-        assert!(expected_collected_protocol_fees == actual_collected_protocol_fees, 0x3);
-
-        degenfun::main::collect_protocol_fees(feedes);
 
         let fee_destination_account_balance = coin::balance<AptosCoin>(fee_destination_address);
 
         //Checking fees in fee destinations account
-        assert!(actual_collected_protocol_fees == fee_destination_account_balance, 0x4);
+        assert!(expected_collected_protocol_fees == fee_destination_account_balance, 0x4);
 
     }
 
-    #[test(dev = @devaddress, resource_account = @degenfun,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
-    #[expected_failure(abort_code = 6,location = degenfun::main)]
-    fun test_collect_protocol_fees_using_wrong_fee_destination(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+    #[test(dev = @devaddress, resource_account = @degenfun,feedes=@0x123,bob=@0x2121,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
+    fun test_check_protocol_fees_in_owners_account(dev:&signer,resource_account:&signer,feedes:&signer,bob:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
         
         pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
         
         setup_test_with_genesis_for_pancake(dev,resource_account,feedes);
 
+        let bob_address = signer::address_of(bob);
+
+        account::create_account_for_test(bob_address);
+
         let fee_destination_address = signer::address_of(feedes);
 
         let protocol_fee = 5000000;
 
-        degenfun::main::set_fee_destination(dev,fee_destination_address);
-
         degenfun::main::set_protocol_fee_percent(dev,protocol_fee);
 
         degenfun::main::register_and_mint(dev,100000000000000);
+
+        degenfun::main::register_and_mint(bob,100000000000000);
 
         let token_name = string::utf8(b"DegenCoin");
         let token_symbol = string::utf8(b"DGC");
@@ -259,11 +260,13 @@ module degenfun::test{
 
         degenfun::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
 
+        let owner_account_balance_before = coin::balance<AptosCoin>(signer::address_of(dev));
+
         let seeds = get_seeds(token_name);
 
         let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
 
-        degenfun::main::buy_share<U0,U1>(dev,share_subject,10,10000000000000);
+        degenfun::main::buy_share<U0,U1>(bob,share_subject,10,10000000000000);
 
         let (_,datastorage_protocol_fee,_,actual_collected_protocol_fees) = degenfun::main::get_data();
 
@@ -272,73 +275,17 @@ module degenfun::test{
         //Calculate expected collected protocol fees
         let expected_collected_protocol_fees = price * datastorage_protocol_fee / APTOS;
 
-        //Checking fees in data storage
-        assert!(expected_collected_protocol_fees == actual_collected_protocol_fees, 0x6);
-
-        degenfun::main::collect_protocol_fees(dev);
-
-        let fee_destination_account_balance = coin::balance<AptosCoin>(fee_destination_address);
+        let owner_account_balance_after = coin::balance<AptosCoin>(signer::address_of(dev));
 
         //Checking fees in fee destinations account
-        assert!(actual_collected_protocol_fees == fee_destination_account_balance, 0x7);
+        assert!((owner_account_balance_after - owner_account_balance_before) == expected_collected_protocol_fees, 0x4);
 
     }
 
-
-    #[test(dev = @devaddress, resource_account = @degenfun,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
-    #[expected_failure(abort_code = 11,location = degenfun::main)]
-    fun test_collect_protocol_fees_when_collected_fees_is_zero(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
-        
-        pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
-        
-        setup_test_with_genesis_for_pancake(dev,resource_account,feedes);
-
-        let fee_destination_address = signer::address_of(feedes);
-
-        let protocol_fee = 5000000;
-
-        degenfun::main::set_fee_destination(dev,fee_destination_address);
-
-        degenfun::main::set_protocol_fee_percent(dev,protocol_fee);
-
-        degenfun::main::register_and_mint(dev,100000000000000);
-
-        let token_name = string::utf8(b"DegenCoin");
-        let token_symbol = string::utf8(b"DGC");
-        let threshold = 10000000000;
-
-        degenfun::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
-
-        let seeds = get_seeds(token_name);
-
-        let share_subject = account::create_resource_address(&signer::address_of(dev),*string::bytes(&seeds));
-
-        degenfun::main::buy_share<U0,U1>(dev,share_subject,10,10000000000000);
-
-        let (_,datastorage_protocol_fee,_,actual_collected_protocol_fees) = degenfun::main::get_data();
-
-        let price = degenfun::main::get_price(1,10);
-
-        //Calculate expected collected protocol fees
-        let expected_collected_protocol_fees = price * datastorage_protocol_fee / APTOS;
-
-        //Checking fees in data storage
-        assert!(expected_collected_protocol_fees == actual_collected_protocol_fees, 0x6);
-
-        degenfun::main::collect_protocol_fees(feedes);
-
-        let fee_destination_account_balance = coin::balance<AptosCoin>(fee_destination_address);
-
-        //Checking fees in fee destinations account
-        assert!(actual_collected_protocol_fees == fee_destination_account_balance, 0x7);
-
-        degenfun::main::collect_protocol_fees(feedes);
-
-    }
     //End collect protocol fees test cases
 
 
-    //Strat get buy price test cases
+    //Start get buy price test cases
     #[test(dev = @devaddress, resource_account = @degenfun,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
     fun test_get_buy_price(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
         
@@ -364,7 +311,7 @@ module degenfun::test{
 
     #[test(dev = @devaddress, resource_account = @degenfun,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
     #[expected_failure(abort_code = 1,location = degenfun::main)]
-    fun test_get_buy_price_with_worong_share_subject(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+    fun test_get_buy_price_with_wrong_share_subject(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
         
         pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
         
@@ -390,7 +337,7 @@ module degenfun::test{
     //End get buy price test cases
 
 
-    //Strat get sell price test cases
+    //Start get sell price test cases
     #[test(dev = @devaddress, resource_account = @degenfun,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
     fun test_get_sell_price(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
         
@@ -416,7 +363,7 @@ module degenfun::test{
 
     #[test(dev = @devaddress, resource_account = @degenfun,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
     #[expected_failure(abort_code = 1,location = degenfun::main)]
-    fun test_get_sell_price_with_worong_share_subject(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+    fun test_get_sell_price_with_wrong_share_subject(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
         
         pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
         
@@ -442,7 +389,7 @@ module degenfun::test{
     //End get sell price test cases
 
 
-    //Strat get buy price after fee test cases
+    //Start get buy price after fee test cases
     #[test(dev = @devaddress, resource_account = @degenfun,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
     fun test_get_buy_price_after_fee(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
         
@@ -468,7 +415,7 @@ module degenfun::test{
 
     #[test(dev = @devaddress, resource_account = @degenfun,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
     #[expected_failure(abort_code = 1,location = degenfun::main)]
-    fun test_get_buy_price_after_fee_with_worong_share_subject(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+    fun test_get_buy_price_after_fee_with_wrong_share_subject(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
         
         pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
         
@@ -494,7 +441,7 @@ module degenfun::test{
     //End get buy price after fee test cases
 
 
-    //Strat get sell price after fee test cases
+    //Start get sell price after fee test cases
     #[test(dev = @devaddress, resource_account = @degenfun,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
     fun test_get_sell_price_after_fee(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
         
@@ -520,7 +467,7 @@ module degenfun::test{
 
     #[test(dev = @devaddress, resource_account = @degenfun,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
     #[expected_failure(abort_code = 1,location = degenfun::main)]
-    fun test_get_sell_price_after_fee_with_worong_share_subject(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+    fun test_get_sell_price_after_fee_with_wrong_share_subject(dev:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
         
         pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
         
@@ -605,7 +552,7 @@ module degenfun::test{
 
         degenfun::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
 
-        //here we createing share with same name
+        //here we creating share with same name
         degenfun::main::create_share<U0,U1>(dev,token_name,token_symbol,threshold);
     } 
 
@@ -629,7 +576,7 @@ module degenfun::test{
         let second_token_symbol = string::utf8(b"MDC");
         let second_token_threshold = 10000000000;
 
-        //here we createing share with same name
+        //here we creating share with same name
         degenfun::main::create_share<U0,U1>(dev,second_token_name,second_token_symbol,second_token_threshold);
     } 
 
@@ -725,7 +672,7 @@ module degenfun::test{
 
     #[test(dev = @devaddress,bob = @0x2121, resource_account = @degenfun,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
     #[expected_failure(abort_code = 1,location = degenfun::main)]
-    fun test_buy_share_with_worong_share_subject(dev:&signer,bob:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+    fun test_buy_share_with_wrong_share_subject(dev:&signer,bob:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
         
         pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
         
@@ -918,7 +865,7 @@ module degenfun::test{
     //End buy share test cases
 
 
-    //Start sell share test caes
+    //Start sell share test case
     #[test(dev = @devaddress,bob = @0x2121, resource_account = @degenfun,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
     fun test_sell_share(dev:&signer,bob:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
         
@@ -953,23 +900,23 @@ module degenfun::test{
         let bob_aptos_balance_before = coin::balance<AptosCoin>(bob_address);
         let share_subject_aptos_balance_before = coin::balance<AptosCoin>(share_subject);
 
-        let shars_to_sell = 5;
-        let sell_price = degenfun::main::get_sell_price<U0,U1>(share_subject,shars_to_sell);
-        degenfun::main::sell_shares<U0,U1>(bob,share_subject,shars_to_sell,0);
+        let shares_to_sell = 5;
+        let sell_price = degenfun::main::get_sell_price<U0,U1>(share_subject,shares_to_sell);
+        degenfun::main::sell_shares<U0,U1>(bob,share_subject,shares_to_sell,0);
 
         let bob_share_balance_after = degenfun::main::get_share_balance<U0,U1>(signer::address_of(bob),share_subject);
         let bob_aptos_balance_after = coin::balance<AptosCoin>(bob_address);
         let share_subject_aptos_balance_after = coin::balance<AptosCoin>(share_subject);
 
 
-        assert!((bob_share_balance_before - shars_to_sell) == bob_share_balance_after, 0x14);
+        assert!((bob_share_balance_before - shares_to_sell) == bob_share_balance_after, 0x14);
         assert!((bob_aptos_balance_after - bob_aptos_balance_before) == sell_price, 0x15);
         assert!((share_subject_aptos_balance_before - share_subject_aptos_balance_after) == sell_price, 0x16);
 
     } 
      #[test(dev = @devaddress,bob = @0x2121, resource_account = @degenfun,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
     #[expected_failure(abort_code = 1,location = degenfun::main)]
-    fun test_sell_share_with_worong_share_subject(dev:&signer,bob:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+    fun test_sell_share_with_wrong_share_subject(dev:&signer,bob:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
         
         pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
         
@@ -1204,10 +1151,10 @@ module degenfun::test{
         degenfun::main::sell_shares<U0,U1>(bob,share_subject,shares_to_sell,0);
 
     }
-    //End sell share test caes
+    //End sell share test case
 
 
-    //Start claim token test caes
+    //Start claim token test case
     #[test(dev = @devaddress,bob = @0x2121, resource_account = @degenfun,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
     fun test_claim_token(dev:&signer,bob:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
         
@@ -1257,7 +1204,7 @@ module degenfun::test{
 
     #[test(dev = @devaddress,bob = @0x2121, resource_account = @degenfun,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
     #[expected_failure(abort_code = 1,location = degenfun::main)]
-    fun test_claim_token_with_worong_share_subject(dev:&signer,bob:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+    fun test_claim_token_with_wrong_share_subject(dev:&signer,bob:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
         
         pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
         
@@ -1295,7 +1242,7 @@ module degenfun::test{
 
     #[test(dev = @devaddress,bob = @0x2121, resource_account = @degenfun,feedes=@0x123,pancakedev=@0xf8982b6548429f48311ea5e4bfe9e4f8e2c1b5d7ffa078bab448d76a7a928581,pancakeadmin=@0xe9e7d98ad629e8d24606a61f4421d1d775e431717a31866788e8e0dcda78a0eb,pancakeresource=@0x274414d1f2b98c47201977edfaeddebb81db2a25885234421c67e8507336f917,pancaketeasury=@0x5432)]
     #[expected_failure(abort_code = 14,location = degenfun::main)]
-    fun test_claim_token_before_claming_start(dev:&signer,bob:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
+    fun test_claim_token_before_clamming_start(dev:&signer,bob:&signer,resource_account:&signer,feedes:&signer,pancakedev:&signer,pancakeadmin:&signer,pancakeresource:&signer,pancaketeasury:&signer){
         
         pancake::swap_test::setup_test_with_genesis(pancakedev,pancakeadmin,pancaketeasury,pancakeresource);
         

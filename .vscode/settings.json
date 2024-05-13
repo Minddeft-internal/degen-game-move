@@ -1,5 +1,20 @@
 {
     "cSpell.enableFiletypes": [
         "move"
+    ],
+    "cSpell.words": [
+        "aptos",
+        "datastorage",
+        "Degen",
+        "degenfun",
+        "destinatione",
+        "devaddress",
+        "feedes",
+        "pancakeadmin",
+        "pancakedev",
+        "pancakeresource",
+        "pancakeswap",
+        "pancaketeasury",
+        "struct"
     ]
 }

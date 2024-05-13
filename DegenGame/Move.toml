@@ -4,7 +4,7 @@ version = "1.0.0"
 authors = []
 
 [addresses]
-degenfun = "0x54c38b1d240d5809bf4bfa00cb2fc1bb7c2fd5f6dd0b9151de7964b310dc8351"
+degenfun = "0x39d1186ec73e6c9679df17a137b517206adf25578f34fca8aa88dc1a972a3bd8"
 devaddress = "0x5e68e6d7f96a19416175cbfc2dfa571d1ca0c0f3bdb66b233f8581c24abb6485"
 testcoin = "0x16"
 

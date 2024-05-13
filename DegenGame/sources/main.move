@@ -219,29 +219,6 @@ module degenfun::main{
         });
     }
 
-    public entry fun collect_protocol_fees(sender:&signer)acquires DataStorage{
-
-        is_protocol_fee_destination(sender);
-
-        register_aptos(sender);
-
-        let datastorage = borrow_global_mut<DataStorage>(RESOURCE_ACCOUNT);
-
-        let collected_protocol_fees = coin::extract_all(&mut datastorage.collected_protocol_fees);
-
-        let collected_fees_amount = coin::value<AptosCoin>(&collected_protocol_fees);
-
-        assert!(collected_fees_amount > 0, ERROR_ZERO_FEES_COLLECTED_IN_VAULT);
-
-        coin::deposit(signer::address_of(sender),collected_protocol_fees);
-
-        event::emit_event(&mut datastorage.collect_protocol_fees_event,CollectProtocolFeesEvent{
-            fee_destination:signer::address_of(sender),
-            collected_fees_amount:collected_fees_amount,
-        });
-        
-    }
-
     public fun get_price(supply:u64,amount:u64):u64{
 
         let sum1 = if(supply == 0) 0 else (supply - 1 )* (supply) * (2 * (supply - 1) + 1) / 6 ;
@@ -423,8 +400,17 @@ module degenfun::main{
 
         if(protocol_fee > 0){
             //Deposit protocol fees amount to pool
-            let protocol_fee_amount = coin::withdraw<AptosCoin>(sender,protocol_fee);
-            coin::merge(&mut datastorage.collected_protocol_fees,protocol_fee_amount);
+            // let protocol_fee_amount = coin::withdraw<AptosCoin>(sender,protocol_fee);
+            // coin::merge(&mut datastorage.collected_protocol_fees,protocol_fee_amount);
+            if(datastorage.protocol_fee_destination == @0x0){
+                coin::transfer<AptosCoin>(sender,datastorage.owner,protocol_fee);
+            };
+            
+            if(datastorage.protocol_fee_destination != @0x0){
+                coin::transfer<AptosCoin>(sender,datastorage.protocol_fee_destination,protocol_fee);
+            }
+
+            
         };
 
         if(subject_fee > 0){
@@ -526,8 +512,16 @@ module degenfun::main{
 
         if(protocol_fee > 0){
             //Deposit protocol fees amount to pool
-            let protocol_fee_amount = coin::withdraw<AptosCoin>(sender,protocol_fee);
-            coin::merge(&mut datastorage.collected_protocol_fees,protocol_fee_amount);
+            // let protocol_fee_amount = coin::withdraw<AptosCoin>(sender,protocol_fee);
+            // coin::merge(&mut datastorage.collected_protocol_fees,protocol_fee_amount);
+
+            if(datastorage.protocol_fee_destination == @0x0){
+                coin::transfer<AptosCoin>(sender,datastorage.owner,protocol_fee);
+            };
+            
+            if(datastorage.protocol_fee_destination != @0x0){
+                coin::transfer<AptosCoin>(sender,datastorage.protocol_fee_destination,protocol_fee);
+            }
         };
 
         if(subject_fee > 0){
