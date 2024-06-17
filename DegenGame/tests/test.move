@@ -14,7 +14,6 @@ module degenfun::test{
     use degenfun::main::DegenFunCoin;
     use aptos_framework::string_utils::to_string;
 
-
     const APTOS:u64 = 100000000;
 
     struct Coins<phantom Name> {
@@ -61,6 +60,42 @@ module degenfun::test{
         setup_test_with_genesis(dev,resource_account,feedes);
     }
 
+    //Start set owner test cases 
+    #[test(dev = @devaddress, resource_account = @degenfun,new_owner=@0x123)]
+    fun test_set_new_owner(dev:&signer,resource_account:&signer,new_owner:&signer){
+        
+        setup_test_with_genesis(dev,resource_account,new_owner);
+
+        let new_owner_address = signer::address_of(new_owner);
+
+        degenfun::main::set_owner(dev,new_owner_address);
+
+        let (owner_address,_,_,_,_) = degenfun::main::get_data();
+
+        assert!(owner_address == new_owner_address, 0x0);
+    }
+
+    #[test(dev = @devaddress, resource_account = @degenfun,new_owner=@0x123)]
+    #[expected_failure(abort_code = 0,location = degenfun::main)]
+    fun test_set_new_owner_using_wrong_owner(dev:&signer,resource_account:&signer,new_owner:&signer){
+        
+        setup_test_with_genesis(dev,resource_account,new_owner);
+
+        let new_owner_address = signer::address_of(new_owner);
+
+        degenfun::main::set_owner(new_owner,new_owner_address);
+    }
+
+    #[test(dev = @devaddress, resource_account = @degenfun,new_owner=@0x123)]
+    #[expected_failure(abort_code = 12,location = degenfun::main)]
+    fun test_set_new_owner_with_zero_address(dev:&signer,resource_account:&signer,new_owner:&signer){
+        
+        setup_test_with_genesis(dev,resource_account,new_owner);
+        
+        degenfun::main::set_owner(dev,@0x0);
+    }
+    //End set owner test cases 
+
 
     //Start set fee destination test cases 
     #[test(dev = @devaddress, resource_account = @degenfun,feedes=@0x123)]
@@ -72,7 +107,7 @@ module degenfun::test{
 
         degenfun::main::set_fee_destination(dev,new_fee_destination_address);
 
-        let (datastorage_fee_destinatione,_,_,_) = degenfun::main::get_data();
+        let (_,datastorage_fee_destinatione,_,_,_) = degenfun::main::get_data();
 
         assert!(datastorage_fee_destinatione == new_fee_destination_address, 0x0);
     }
@@ -109,7 +144,7 @@ module degenfun::test{
 
         degenfun::main::set_protocol_fee_percent(dev,protocol_fee);
 
-        let (_,datastorage_protocol_fee,_,_) = degenfun::main::get_data();
+        let (_,_,datastorage_protocol_fee,_,_) = degenfun::main::get_data();
 
         assert!(datastorage_protocol_fee == protocol_fee, 0x1);
     }
@@ -153,7 +188,7 @@ module degenfun::test{
 
         degenfun::main::set_subject_fee_percent(dev,subject_fee);
 
-        let (_,_,datastorage_subject_fee,_) = degenfun::main::get_data();
+        let (_,_,_,datastorage_subject_fee,_) = degenfun::main::get_data();
 
         assert!(datastorage_subject_fee == subject_fee, 0x2);
     }
@@ -218,7 +253,7 @@ module degenfun::test{
 
         degenfun::main::buy_share<U0,U1>(dev,share_subject,10,10000000000000);
 
-        let (_,datastorage_protocol_fee,_,actual_collected_protocol_fees) = degenfun::main::get_data();
+        let (_,_,datastorage_protocol_fee,_,actual_collected_protocol_fees) = degenfun::main::get_data();
 
         let price = degenfun::main::get_price(1,10);
 
@@ -268,7 +303,7 @@ module degenfun::test{
 
         degenfun::main::buy_share<U0,U1>(bob,share_subject,10,10000000000000);
 
-        let (_,datastorage_protocol_fee,_,actual_collected_protocol_fees) = degenfun::main::get_data();
+        let (_,_,datastorage_protocol_fee,_,actual_collected_protocol_fees) = degenfun::main::get_data();
 
         let price = degenfun::main::get_price(1,10);
 

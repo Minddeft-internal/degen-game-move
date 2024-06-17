@@ -68,6 +68,7 @@ module degenfun::main{
         buy_share_event:event::EventHandle<BuyShareEvent>,
         sell_share_event:event::EventHandle<SellShareEvent>,
         set_fee_destination_event:event::EventHandle<SetFeeDestinationEvent>,
+        set_owner_event:event::EventHandle<SetNewOwnerEvent>,
         set_protocol_fee_percent_event:event::EventHandle<SetProtocolFeePercentEvent>,
         set_subject_fee_percent_event:event::EventHandle<SetSubjectFeePercentEvent>,
         collect_protocol_fees_event:event::EventHandle<CollectProtocolFeesEvent>,
@@ -79,6 +80,12 @@ module degenfun::main{
         old_fee_destination:address,
         new_fee_destination:address,
     }
+
+    struct SetNewOwnerEvent has copy,store,drop{
+        old_owner:address,
+        new_owner:address,
+    }
+
 
     struct SetProtocolFeePercentEvent has copy,store,drop{
         old_fee_percent:u64,
@@ -152,6 +159,7 @@ module degenfun::main{
             buy_share_event:account::new_event_handle<BuyShareEvent>(sender),
             sell_share_event:account::new_event_handle<SellShareEvent>(sender),
             set_fee_destination_event:account::new_event_handle<SetFeeDestinationEvent>(sender),
+            set_owner_event:account::new_event_handle<SetNewOwnerEvent>(sender),
             set_protocol_fee_percent_event:account::new_event_handle<SetProtocolFeePercentEvent>(sender),
             set_subject_fee_percent_event:account::new_event_handle<SetSubjectFeePercentEvent>(sender),
             collect_protocol_fees_event:account::new_event_handle<CollectProtocolFeesEvent>(sender),
@@ -159,6 +167,26 @@ module degenfun::main{
             claim_token_event:account::new_event_handle<ClaimTokenEvent>(sender),
         })
 
+    }
+
+    public entry fun set_owner(sender:&signer,new_owner_address:address)acquires DataStorage{
+        
+        //Check whether caller is owner or not
+        is_owner(sender);
+
+        is_zero_address(new_owner_address);
+
+        let datastorage = borrow_global_mut<DataStorage>(RESOURCE_ACCOUNT);
+
+        let old_owner = datastorage.owner;
+        
+        datastorage.owner = new_owner_address;
+
+        event::emit_event(&mut datastorage.set_owner_event,SetNewOwnerEvent{
+            old_owner:old_owner,
+            new_owner:new_owner_address,
+        });
+        
     }
 
     public entry fun set_fee_destination(sender:&signer,fee_destination:address)acquires DataStorage{
@@ -792,11 +820,11 @@ module degenfun::main{
     }
 
     #[test_only]
-    public fun get_data():(address,u64,u64,u64) acquires DataStorage{
+    public fun get_data():(address,address,u64,u64,u64) acquires DataStorage{
 
         let datastorage = borrow_global<DataStorage>(RESOURCE_ACCOUNT);
 
-        (datastorage.protocol_fee_destination,datastorage.protocol_fee_percent,datastorage.subject_fee_percent,coin::value(&datastorage.collected_protocol_fees))
+        (datastorage.owner,datastorage.protocol_fee_destination,datastorage.protocol_fee_percent,datastorage.subject_fee_percent,coin::value(&datastorage.collected_protocol_fees))
 
     }
 

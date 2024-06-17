@@ -4,10 +4,17 @@ version = "1.0.0"
 authors = []
 
 [addresses]
-degenfun = "0x39d1186ec73e6c9679df17a137b517206adf25578f34fca8aa88dc1a972a3bd8"
-devaddress = "0x5e68e6d7f96a19416175cbfc2dfa571d1ca0c0f3bdb66b233f8581c24abb6485"
+# mainet_address
+degenfun = "0xa66939c152f34d59ea0c9b19eb422b5f3d29703adda09657765ebd456ab6306e"
+devaddress = "0xa38bcf47f3fe8b2d8c51bc0958d75012f3c191c0add82ccf944b0f6ec16c940c"
 testcoin = "0x16"
 
+#testnet
+# degenfun = "0x2c6903fbeffeb6f60dee9c7a66eb59a636ffb1287ee266b49f12f5813071628e"
+# devaddress = "0x5e68e6d7f96a19416175cbfc2dfa571d1ca0c0f3bdb66b233f8581c24abb6485"
+# testcoin = "0x16"
+
+#localnet
 # degenfun = "0xe8f6ae923fc761ae5543e72540d9266d6150412917883b05ace80777a9712ebc"
 # devaddress = "0x5e68e6d7f96a19416175cbfc2dfa571d1ca0c0f3bdb66b233f8581c24abb6485"
 # testcoin = "0x16"
@@ -15,7 +22,7 @@ testcoin = "0x16"
 [dev-addresses]
 
 [dependencies]
-AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git",subdir = "aptos-move/framework/aptos-framework",rev = "mainnet"}
+AptosFramework = {git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework/", rev = "72421d32d77f1877ded478e96f5b95914de1df91"}
 PancakeSwap = { local = "../pancake-swap" }
 
 [dev-dependencies]
